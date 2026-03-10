@@ -6,6 +6,17 @@
 
 ---
 
+## 当前进度（已验证）
+
+- **自托管 Dokploy 已安装成功**（在 Mac 的 Multipass VM `dokploy-vm` 内）。
+- **正确访问方式（本机 Multipass）**：使用 `multipass list` 看到的 VM 私网 IP（`192.168.64.x`）访问 `http://<VM私网IP>:3000`。  
+  安装脚本打印的 `http://<公网/出口IP>:3000` 在本机场景可能不可用（未做端口映射）。
+- **你当前下一步**：在浏览器打开 `http://<VM私网IP>:3000/register`（或直接打开 `http://<VM私网IP>:3000` 跳转到注册页）创建管理员账号。
+
+（更详细的 VM/IP 说明与排错见 [docs/mac-multipass-dokploy.md](./docs/mac-multipass-dokploy.md)。）
+
+---
+
 ## 前置条件（在动手点 Dokploy 之前）
 
 - [ ] **已有一个 Linux 环境**：Dokploy 官方安装脚本**仅支持 Linux**（如 Ubuntu、Debian、CentOS、Fedora 等），**不支持 macOS**。可选两种方式获得 Linux：
@@ -31,7 +42,7 @@
    curl -sSL https://dokploy.com/install.sh | sudo sh
    ```  
    脚本会自动检测最新稳定版并安装 Dokploy + PostgreSQL + Redis；若需指定版本可先设置 `export DOKPLOY_VERSION=v0.26.6` 再执行上述命令。详见 [Dokploy 官方安装文档](https://docs.dokploy.com/docs/core/installation)。
-3. 安装完成后在浏览器访问：`http://<该 Linux 的 IP>:3000`（VPS 用公网 IP，Multipass VM 用 `multipass list` 显示的 IP），按提示创建管理员账号。
+3. 安装完成后在浏览器访问：`http://<该 Linux 的 IP>:3000`（VPS 用公网 IP；**本机 Multipass VM 用 `multipass list` 显示的 `192.168.64.x`**），进入注册页创建管理员账号。
 
 安装完成后，Dokploy 自带 Web 终端：**Settings → Servers → 对应服务器 → Enter Terminal** 可进该机 shell；容器/应用也有终端或 Run Command。日常操作不必每次都 SSH，但**首次安装**必须在该 Linux 上执行上述脚本。
 
@@ -41,10 +52,18 @@
 
 ## 第二步：登录并创建项目
 
-1. 在浏览器打开**你自托管实例**的地址（如 `http://<你的 Linux IP>:3000`）。**不要**使用 app.dokploy.com 等托管版地址，否则会看到「No servers available, Please subscribe to a plan」且不符合 issue #157。
-2. 使用你在该实例上创建的管理员账号**登录**（自托管版首次访问会引导你创建管理员，无需「订阅计划」）。
-3. 在左侧或顶部导航找到 **「项目」/「Project」**，点击 **「新建项目」/「Create Project」**。
-4. 填写项目名称（例如 `medical-server` 或 `raidar`），保存。
+### 2.1 初始化：创建管理员账号（首次访问）
+
+1. 在浏览器打开**你自托管实例**的地址：`http://<你的 Linux IP>:3000`。  
+   - **本机 Multipass**：优先用 `http://192.168.64.x:3000`（以 `multipass list` 为准）。  
+   - **不要**使用 app.dokploy.com 等托管版地址，否则会看到「No servers available, Please subscribe to a plan」且不符合 issue #157。
+2. 若自动跳转到注册页，按页面 **Setup the server / Register** 表单填写信息并提交（如 `http://<IP>:3000/register`）。
+
+### 2.2 登录并创建项目
+
+1. 用刚创建的管理员账号登录。
+2. 在左侧或顶部导航找到 **「项目」/「Project」**，点击 **「新建项目」/「Create Project」**。
+3. 填写项目名称（例如 `medical-server` 或 `raidar`），保存。
 
 ---
 
