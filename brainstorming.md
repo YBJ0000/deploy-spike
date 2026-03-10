@@ -149,3 +149,11 @@ Production hardening follow-ups
 * 多环境隔离
 * 灰度/回滚
 * 资源限制与扩缩容策略
+
+还要写一个“实际操作流程”文档，指导一步步操作，随着探索深入，文档也要更新。
+内容包括（设想）：
+安装 Dokploy：操作SSH
+部署 Raidar Server 到 Dokploy：浏览器操作，填配置信息，点击deploy按钮
+MongoDB replica set 配置（难点）
+数据导入：部署完mongodb后，在浏览器dokploy终端执行mongosh命令
+
