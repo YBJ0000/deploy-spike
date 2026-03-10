@@ -10,5 +10,6 @@
 | [operating-guide.md](./operating-guide.md) | 浏览器操作 Dokploy 的逐步指南（随探索更新） |
 | [journal/timeline-and-attempts.md](./journal/timeline-and-attempts.md) | 时间线、尝试过的方案与错误记录 |
 | [journal/2026-03-10-session-1.md](./journal/2026-03-10-session-1.md) | 按会话记录的具体操作与结论 |
+| [findings/self-hosted-vs-cloud.md](./findings/self-hosted-vs-cloud.md) | 自托管 vs Cloud、与 issue #157 符合性、Mac 用 Multipass 获得 Linux |
 
-后续将补充：`findings/`（推荐方案、风险）、`configs/`（环境变量与 compose 草案）、`evidence/`（截图与错误片段）。
+后续将补充：`findings/` 内推荐方案与风险、`configs/`（环境变量与 compose 草案）、`evidence/`（截图与错误片段）。
