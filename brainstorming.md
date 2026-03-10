@@ -4,15 +4,26 @@
 
 给AI看readme和issue#157 
 
-用Gemini、Grok（搜索能力强的AI）查有没有网友部署成功类似项目的，有的话请看看他的经验是什么，有什么注意的点，有什么不可行的地方
+用Gemini、Grok（搜索能力强的AI）查有没有网友部署成功类似项目的，有的话请看看他的经验是什么，有什么注意的点，有什么不可行的地方：
+MongoDB replica set（rs0） 是最大的注意点，其他部分（Spring Boot + RabbitMQ + Redis）都很顺手：
+MongoDB replica set 是唯一大坑
+Dokploy 内置 MongoDB 服务不支持直接开 rs0（或开了也容易 hostname 不匹配导致连不上）。
+必须用自定义 Mongo 服务（推荐方式下面会给）。
+连接字符串一定要加?replicaSet=rs0（否则事务会报错，和你本地 dev 一样）。
+服务名必须叫 mongodb（这样 rs.initiate 里的 hostname 才对）
 
 整体部署or分开部署
 用 Compose 一键部署整个 stack（app + mongo + rabbit + redis）？
 分开部署（App + 3 个 Database 服务），Mongo 用 Advanced → Custom Command？
+推荐整体部署：Dokploy 原生支持 docker-compose.yml，直接导入就行；直接复制 Checkmate 的 Mongo 配置。
 
-mongodb、rabbit、redis
+RabbitMQ & Redis 超级简单
+- 直接用 Dokploy 内置 Database 服务（RabbitMQ / Redis）。
+- 默认 guest/guest 和 redis://redis:6379 就行（内部网络，不暴露公网，很安全）。
+- 项目 Docker run 示例里也是外部连接，完全兼容。
 
 从GitHub仓库拉取代码还是Docker Hub拉取镜像？
+推荐GitHub
 
 还要考虑：环境变量、内存、数据导入、swaggerUI测试…
 
