@@ -10,7 +10,7 @@
 
 - [ ] **已有一个 Linux 环境**：Dokploy 官方安装脚本**仅支持 Linux**（如 Ubuntu、Debian、CentOS、Fedora 等），**不支持 macOS**。可选两种方式获得 Linux：
   - **方式 A**：租用一台 Linux VPS，SSH 登录后在该机上安装；
-  - **方式 B**：在 Mac 上用 **Multipass** 或 **UTM** 跑一个 Linux 虚拟机，在虚拟机里安装（效果等同「有一台 Linux 服务器」，无需租 VPS）。例如 Multipass：`multipass launch docker` 即可得到带 Docker 的 Ubuntu。
+  - **方式 B**：在 Mac 上用 **Multipass** 跑 Linux 虚拟机，在 VM 内安装。**逐步命令见** [docs/mac-multipass-dokploy.md](./docs/mac-multipass-dokploy.md)。
 - [ ] 该 Linux 满足：至少 2GB 内存、30GB 磁盘；端口 **80、443、3000** 未被占用，防火墙已放行。
 - [ ] 该 Linux 已安装 Docker（或由安装脚本自动安装）。
 - [ ] 如需域名访问，DNS 已指向该机；TLS/反向代理按你方约定配置。
@@ -25,7 +25,7 @@
 
 1. 获得该 Linux 的 shell：
    - **若用 VPS**：`ssh 用户名@服务器IP或域名`
-   - **若用 Mac 上的 Multipass**：`multipass launch docker` 创建 VM 后，`multipass shell <VM名>` 进入；或先 `multipass list` 查 VM IP，再 SSH 进 VM（若已配好）。
+   - **若用 Mac 上的 Multipass**：按 [docs/mac-multipass-dokploy.md](./docs/mac-multipass-dokploy.md) 创建 VM（如 `multipass launch 22.04 --name dokploy --memory 2G --disk 30G`），再用 `multipass shell dokploy` 进入。
 2. 在该 Linux 上执行官方一键安装（需 root，通常加 `sudo`）：  
    ```bash
    curl -sSL https://dokploy.com/install.sh | sudo sh
