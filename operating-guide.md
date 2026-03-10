@@ -25,7 +25,7 @@
 
 1. 获得该 Linux 的 shell：
    - **若用 VPS**：`ssh 用户名@服务器IP或域名`
-   - **若用 Mac 上的 Multipass**：按 [docs/mac-multipass-dokploy.md](./docs/mac-multipass-dokploy.md) 创建 VM（如 `multipass launch 22.04 --name dokploy --memory 2G --disk 30G`），再用 `multipass shell dokploy` 进入。
+   - **若用 Mac 上的 Multipass**：按 [docs/mac-multipass-dokploy.md](./docs/mac-multipass-dokploy.md) 创建 VM（如 `multipass launch 22.04 --name dokploy-vm --memory 2G --disk 30G`），再用 `multipass shell dokploy-vm` 进入。
 2. 在该 Linux 上执行官方一键安装（需 root，通常加 `sudo`）：  
    ```bash
    curl -sSL https://dokploy.com/install.sh | sudo sh

@@ -14,6 +14,18 @@
 
 ---
 
+## 命名约定（避免歧义）
+
+为避免把「Dokploy（产品/面板）」和「Multipass VM」混淆，本文统一约定：
+
+- **VM 名称**：`dokploy-vm`（表示“跑 Dokploy 的虚拟机”）
+- **Dokploy（产品）**：一律写作 Dokploy
+- **Dokploy Cloud**：写作 Dokploy Cloud（付费托管版）
+
+建议避免在同一套文档里把 VM、项目、应用都起名为 `dokploy`，否则后续排错时很难描述“到底是哪一个 dokploy”。
+
+---
+
 ## 第一步：安装 Multipass
 
 在 Mac 终端执行：
@@ -39,10 +51,10 @@ multipass --version
 创建一台满足 Dokploy 要求的 VM（2GB 内存、30GB 磁盘，Ubuntu 22.04）：
 
 ```bash
-multipass launch 22.04 --name dokploy --memory 2G --disk 30G --cpus 2
+multipass launch 22.04 --name dokploy-vm --memory 2G --disk 30G --cpus 2
 ```
 
-- `--name dokploy`：实例名称，后续用 `multipass shell dokploy` 进入。
+- `--name dokploy-vm`：实例名称，后续用 `multipass shell dokploy-vm` 进入。
 - `--memory 2G`：Dokploy 官方最低要求 2GB。
 - `--disk 30G`：官方建议至少 30GB。
 - `--cpus 2`：建议 2 核，便于构建与运行。
@@ -53,7 +65,7 @@ multipass launch 22.04 --name dokploy --memory 2G --disk 30G --cpus 2
 multipass list
 ```
 
-应看到 `dokploy` 状态为 `Running`。
+应看到 `dokploy-vm` 状态为 `Running`。
 
 **若本步出错**：记录错误（例如 QEMU/ARM 相关报错），并更新本文档「已遇到的问题与处理」。
 
@@ -64,10 +76,10 @@ multipass list
 进入虚拟机：
 
 ```bash
-multipass shell dokploy
+multipass shell dokploy-vm
 ```
 
-此时终端提示符会变为 Ubuntu 用户（如 `ubuntu@dokploy`）。在 **VM 内**执行：
+此时终端提示符会变为 Ubuntu 用户（如 `ubuntu@dokploy-vm`）。在 **VM 内**执行：
 
 ```bash
 curl -sSL https://dokploy.com/install.sh | sudo sh
@@ -93,7 +105,7 @@ exit
 multipass list
 ```
 
-记下 `dokploy` 对应的 **IPv4**（例如 `192.168.64.2`）。
+记下 `dokploy-vm` 对应的 **IPv4**（例如 `192.168.64.2`）。
 
 在浏览器中打开：
 
@@ -109,11 +121,11 @@ http://<上一步的 IPv4>:3000
 
 ## 第五步：后续使用
 
-- **再次进入 VM**：`multipass shell dokploy`
+- **再次进入 VM**：`multipass shell dokploy-vm`
 - **查看 VM 状态 / IP**：`multipass list`
-- **停止 VM**：`multipass stop dokploy`
-- **启动 VM**：`multipass start dokploy`
-- **删除 VM**（会删除其中所有数据）：`multipass delete dokploy && multipass purge`
+- **停止 VM**：`multipass stop dokploy-vm`
+- **启动 VM**：`multipass start dokploy-vm`
+- **删除 VM**（会删除其中所有数据）：`multipass delete dokploy-vm && multipass purge`
 
 Dokploy 的 Web 终端：登录后 **Settings → Servers → 对应服务器 → Enter Terminal**，无需每次 SSH 或 `multipass shell`。
 
