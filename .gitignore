@@ -1,0 +1,28 @@
+# Secrets / env
+.env
+.env.*
+*.secret
+*.key
+*.pem
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Node if temporary scripts appear
+node_modules/
+
+# Python if temporary scripts appear
+.venv/
+venv/
+
+# Local scratch files
+tmp/
+scratch/
