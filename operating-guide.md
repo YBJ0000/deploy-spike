@@ -6,22 +6,29 @@
 
 ## 前置条件（在动手点 Dokploy 之前）
 
-- [ ] 已有一台可 SSH 的服务器（VPS），并已安装 Dokploy（若未安装，见下方「安装 Dokploy」）。
-- [ ] 防火墙已开放 Dokploy 所需端口（如 3000、22 等，以官方文档为准）。
+- [ ] **已有一台 Linux 服务器（VPS）**：Dokploy 官方安装脚本**仅支持 Linux**（如 Ubuntu、Debian、CentOS、Fedora 等），**不支持 macOS**。在 Mac 上只能做文档与配置准备，无法在本机完成安装。
+- [ ] 服务器满足：至少 2GB 内存、30GB 磁盘；端口 **80、443、3000** 未被占用，防火墙已放行。
+- [ ] 服务器已安装 Docker（或由安装脚本自动安装）。
 - [ ] 如需域名访问，DNS 已指向该服务器；TLS/反向代理按你方约定配置。
+
+**本地 Mac 可做检查**：`docker --version` 确认 Docker 已装（用于本地构建等）；实际安装须在 Linux VPS 上完成。
 
 ---
 
-## 第一步：安装 Dokploy（SSH 操作）
+## 第一步：安装 Dokploy（须在 Linux VPS 上执行）
 
-若 Dokploy 尚未安装，需在服务器上执行：
+安装**必须在 Linux VPS 上**进行，不能在本机 macOS 上运行官方脚本。
 
-1. SSH 登录到服务器：  
+1. SSH 登录到你的 **Linux 服务器**：  
    `ssh 用户名@服务器IP或域名`
-2. 按 [Dokploy 官方安装文档](https://dokploy.com/docs/installation) 执行安装命令（通常为一条 curl 或 docker 相关命令）。
-3. 安装完成后记下访问地址（如 `http://服务器IP:3000`），在浏览器中打开。
+2. 在 VPS 上执行官方一键安装（需 root，通常加 `sudo`）：  
+   ```bash
+   curl -sSL https://dokploy.com/install.sh | sudo sh
+   ```  
+   脚本会自动检测最新稳定版并安装 Dokploy + PostgreSQL + Redis；若需指定版本可先设置 `export DOKPLOY_VERSION=v0.26.6` 再执行上述命令。详见 [Dokploy 官方安装文档](https://docs.dokploy.com/docs/core/installation)。
+3. 安装完成后在浏览器访问：`http://<VPS的IP>:3000`，按提示创建管理员账号。
 
-*（具体命令以官方文档为准；安装完成后可把本段精简为「见官方文档」+ 链接。）*
+*若在 Mac 上执行上述 `curl ... | sh`，脚本会先要求 root，在 root 下会检测到 Darwin 并报错退出：「This script must be run on Linux」。*
 
 ---
 
