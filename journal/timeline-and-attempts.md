@@ -40,6 +40,7 @@
 | 2026-03-10 | 在 Mac 本机运行官方安装脚本 `curl ... \| sh` | 失败   | 脚本要求 root，且明确拒绝 Darwin，仅支持 Linux |
 | 2026-03-10 | 在 Dokploy Cloud 界面直接 Create project | 失败   | 托管版需订阅才有 Server；与 issue #157「not a paid hosted solution」不符，应改用自托管 |
 | 2026-03-10 | 在 Cursor 环境自动执行 `brew install --cask multipass` | 未完成 | 安装需 sudo 密码，无交互环境无法输入；已记录于 [docs/mac-multipass-dokploy.md](../docs/mac-multipass-dokploy.md)，需在本机终端手动执行第一步 |
+| 2026-03-10 | 在 Multipass VM 内执行安装脚本安装 Dokploy | 成功 | 输出 “Congratulations, Dokploy is installed!”；进入自托管面板继续后续步骤 |
 | （示例）   | 用内置 MongoDB     | 失败   | 无法开 rs0     |
 
 ---

@@ -87,6 +87,16 @@ curl -sSL https://dokploy.com/install.sh | sudo sh
 
 脚本会检测最新稳定版、安装 Docker（若未安装）、初始化 Docker Swarm、部署 Dokploy + PostgreSQL + Redis。根据网络情况可能需要数分钟。
 
+**成功判据（示例输出）**：
+
+- 看到类似以下内容即可认为安装完成（实际 IP 以你的输出为准）：
+
+```text
+Congratulations, Dokploy is installed!
+Wait 15 seconds for the server to start
+Please go to http://<IP>:3000
+```
+
 安装完成后，在 VM 内可先退出（后续用浏览器访问即可）：
 
 ```bash
