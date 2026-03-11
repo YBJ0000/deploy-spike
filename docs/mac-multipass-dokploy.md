@@ -145,6 +145,8 @@ http://<上一步的 IPv4>:3000
 
 **说明**：自托管 Dokploy 的账号、项目等数据都存在本 VM 内的 PostgreSQL 中，与 Dokploy 官方无关。删除该 VM 后，这些账号和数据会一并丢失；若有需要请先备份再删。
 
+- **本机 VM 的局限**：VM 使用私网 IP（`192.168.64.x`），公网无法直接访问；Mac 休眠（合盖）后 VM 会挂起，服务不可用。本清单适合**本地验证与探索**；若需 7×24 对外服务，请改用 Linux VPS 或内网穿透/隧道。
+
 Dokploy 的 Web 终端：登录后 **Settings → Servers → 对应服务器 → Enter Terminal**，无需每次 SSH 或 `multipass shell`。
 
 ---
