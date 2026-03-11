@@ -28,12 +28,15 @@ Image ghoshorn/raidar:server-latest Error pull access denied for ghoshorn/raidar
 ## 方案 3 的具体步骤（推荐）
 
 1. **在本地（或已有 CI）构建 Raidar 镜像**  
-   在 medical-server 仓库根目录的 `app/` 下（见 [medical-server/app/README.md](../../medical-server/app/README.md)）：
+   在 medical-server 的 `app/` 目录下执行（见 [medical-server/app/README.md](../../medical-server/app/README.md)）。  
+   **注意**：若本地 Docker 使用 credsStore 等，构建可能报 `'username' must not be null`，需先设置环境变量再构建：
    ```bash
-   cd app
+   export DOCKER_HUB_USERNAME=<你的DockerHub用户名>
+   cd /path/to/medical-server/app
    ./gradlew bootBuildImage --imageName=<你的DockerHub用户名>/raidar:server-latest
    ```
-   若用 GitHub Container Registry，可改为 `ghcr.io/<你的GitHub用户名>/raidar:server-latest`。
+   若用 GitHub Container Registry，可改为 `ghcr.io/<你的GitHub用户名>/raidar:server-latest`。  
+   **逐步命令清单**见 [docs/build-and-push-raidar-image.md](../docs/build-and-push-raidar-image.md)。
 
 2. **推送到镜像仓库**  
    ```bash

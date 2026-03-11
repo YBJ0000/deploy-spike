@@ -13,6 +13,7 @@
 | [findings/self-hosted-vs-cloud.md](./findings/self-hosted-vs-cloud.md) | 自托管 vs Cloud、与 issue #157 符合性、Mac 用 Multipass 获得 Linux |
 | [findings/raidar-image-source.md](./findings/raidar-image-source.md) | Raidar 镜像拉取失败时的方案（自建推送 / Fork / 公司 GitHub） |
 | [docs/mac-multipass-dokploy.md](./docs/mac-multipass-dokploy.md) | Mac + Multipass 安装 Dokploy 逐步命令清单（含排错记录） |
+| [docs/build-and-push-raidar-image.md](./docs/build-and-push-raidar-image.md) | 方案 3：本地构建 Raidar 镜像并推送到 Docker Hub 的命令清单 |
 | [configs/docker-compose-medical-server.yml](./configs/docker-compose-medical-server.yml) | medical-server 栈的 Compose 草案（Mongo rs0 + RabbitMQ + Redis + Raidar） |
 
 后续将补充：`findings/` 内推荐方案与风险、`configs/` 内环境变量说明、`evidence/`（截图与错误片段）。

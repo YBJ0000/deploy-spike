@@ -141,7 +141,7 @@
 
 若 Deploy 报错：`pull access denied for ghoshorn/raidar, repository does not exist or may require 'docker login'`，说明当前无法使用该镜像（私有且无权限，或该仓库已不可用）。此时需**换用其他可拉取的 Raidar 镜像**。详见 [findings/raidar-image-source.md](./findings/raidar-image-source.md)，这里仅摘要：
 
-- **方案 3（推荐，可完全自助）**：在本地从 medical-server 源码执行 `./gradlew bootBuildImage --imageName=<你的DockerHub用户名>/raidar:server-latest`，再 `docker push` 到你自己的 Docker Hub；把 compose 里 raidar 的 `image:` 改为该镜像；若设为私有，在 Dokploy 的 Registries 中配置你的 Docker Hub。**不需要**公司 GitHub 管理员或 Fork——Docker Hub 与 GitHub 是两套账号，你只要有源码即可构建并推到你自己的 Hub。
+- **方案 3（推荐，可完全自助）**：在本地从 medical-server 源码执行 `./gradlew bootBuildImage --imageName=<你的DockerHub用户名>/raidar:server-latest`，再 `docker push` 到你自己的 Docker Hub；把 compose 里 raidar 的 `image:` 改为该镜像；若设为私有，在 Dokploy 的 Registries 中配置你的 Docker Hub。**不需要**公司 GitHub 管理员或 Fork——Docker Hub 与 GitHub 是两套账号，你只要有源码即可构建并推到你自己的 Hub。**逐步命令**见 [docs/build-and-push-raidar-image.md](./docs/build-and-push-raidar-image.md)。
 - **方案 2**：若组织开放 Fork，可把 medical-server fork 到个人账号，再在 Dokploy 用 Application 从 fork 构建，或由 fork 的 CI 构建并推送镜像，compose 引用该镜像。
 - **方案 1**：由公司组织管理员在 GitHub 安装 Dokploy 的 GitHub App，在 Dokploy 从官方 repo 构建或使用公司推送的镜像并配置 Registry。
 
