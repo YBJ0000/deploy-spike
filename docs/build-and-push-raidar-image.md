@@ -166,7 +166,8 @@ docker login
 docker push yangbingjia1206/raidar:server-latest
 ```
 
-若将镜像设为私有，需在 Dokploy 的 **Settings → Registries** 中配置该 Docker Hub 账号，否则拉取会失败。
+- **镜像为公开（public）**：无需在 Dokploy 里配置 Registry，只要 compose 中 `image:` 写对即可拉取。
+- **镜像为私有（private）**：必须在 Dokploy 的 **Settings → Docker Registry** 中点击「+ Add Registry」：Registry Name 自拟（如 `Docker Hub`），Registry URL 填 `docker.io`，Username / Password 填你的 Docker Hub 账号或 Access Token，保存后 Dokploy 拉取该私有镜像时才会带认证，否则会报 pull access denied。
 
 ---
 

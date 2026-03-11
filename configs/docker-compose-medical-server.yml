@@ -40,9 +40,8 @@ services:
       - redis_data:/data
 
   raidar:
-    # 若 ghoshorn/raidar 不可用，改为你自行构建并推送的镜像，例如 <你的DockerHub用户名>/raidar:server-latest
-    # 构建：cd medical-server/app && ./gradlew bootBuildImage --imageName=<用户名>/raidar:server-latest && docker push <用户名>/raidar:server-latest
-    image: ghoshorn/raidar:server-latest
+    # 使用自建并推送的镜像（方案 3：见 deploy-spike/docs/build-and-push-raidar-image.md）
+    image: yangbingjia1206/raidar:server-latest
     container_name: raidar
     ports:
       - "8080:8080"
