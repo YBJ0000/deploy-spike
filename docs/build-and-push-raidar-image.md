@@ -7,7 +7,7 @@ Docker Hub 用户名示例：`yangbingjia1206`，请按需替换。
 若方案 A 在 **EXPORTING** 阶段反复报错 `content digest ... not found`（Docker Desktop + containerd 的已知问题），请**改用方案 B**，无需关闭 containerd 即可成功构建并推送。  
 **方案 B 已在实际环境中验证**：在将 `medical-server/app/build.gradle` 恢复为与 main 一致（无 bootBuildImage 专用配置）后，使用 Dockerfile 构建并推送镜像成功。
 
-**当前进度**：方案 B（Dockerfile）已可稳定构建并推送镜像；Compose 已切换为**带 tag 的镜像**（避免缓存，例如 `yangbingjia1206/raidar:server-20260311-1`）。  
+**当前进度**：方案 B（Dockerfile）已可稳定构建并推送镜像；Compose 已切换为**使用 `.env` 中的 RAIDAR_TAG 的带 tag 镜像**（例如 `yangbingjia1206/raidar:${RAIDAR_TAG}`），统一由 `.env` 控制。  
 **注意**：若 Dokploy 运行在 **linux/arm64**（例如 Mac 的 Multipass VM 常为 arm64），而你推送的是 **linux/amd64** 镜像，Dokploy Deploy 时会报：`no matching manifest for linux/arm64/v8`。此时需要按下方「为 arm64 / 多架构推送镜像」重新构建并推送 **arm64 或 multi-arch** 镜像后再 Deploy。  
 后续在 Dokploy 上仍需完成：第四步初始化 MongoDB 副本集（rs0）、可选数据导入、验收 Swagger 与依赖服务。见 [operating-guide.md](../operating-guide.md)。
 
@@ -25,13 +25,29 @@ Docker Hub 用户名示例：`yangbingjia1206`，请按需替换。
 
 不经过 Buildpacks，直接 `docker build`，可规避「content digest not found」等导出问题。在 Mac + Docker Desktop、`build.gradle` 与 main 一致的前提下已成功构建并推送。
 
+### 步骤 B0：统一配置 RAIDAR_TAG（只改一处）
+
+为避免同时改 `export RAIDAR_TAG=...` 和 compose 里的 tag，我们用 **docker-compose 的 `.env` 文件** 来统一管理：
+
+1. 在 `deploy-spike/.env` 中设置（已提供示例）：
+
+   ```env
+   RAIDAR_TAG=server-20260311-1
+   ```
+
+   - 之后你只需要修改这一行（例如改成 `server-20260311-2`），**compose 与 Dokploy Deploy 都会用这个 tag**。
+2. 在本地终端中加载 `.env`（这样 shell 里的构建命令也能用同一个 `$RAIDAR_TAG`）：
+
+   ```bash
+   cd /path/to/deploy-spike
+   set -a
+   source .env
+   set +a
+   ```
+
+   - 这一步不需要改任何文字，只是每次新开终端时执行一次，让 `$RAIDAR_TAG` 环境变量与 `.env` 同步。
+
 ### 步骤 B1：在 medical-server/app 下构建镜像
-
-先定义一个 tag（**强烈推荐每次改代码都换 tag**，避免 Dokploy/服务器本地缓存旧镜像）：
-
-```bash
-export RAIDAR_TAG=server-20260311-1
-```
 
 ```bash
 cd /path/to/medical-server/app
@@ -79,16 +95,14 @@ docker buildx build --platform linux/amd64,linux/arm64 -t yangbingjia1206/raidar
 docker buildx build --platform linux/arm64 -t yangbingjia1206/raidar:${RAIDAR_TAG} --push .
 ```
 
-### 步骤 B2：登录并推送
+### 步骤 B2：登录并推送（若未用 buildx --push）
+
+若上一步已用 `--push`，可以跳过本节。否则：
 
 ```bash
 docker login
 docker push yangbingjia1206/raidar:${RAIDAR_TAG}
 ```
-
-### 步骤 B3：修改 Compose 并重新部署
-
-与下方「步骤 5」相同：将 compose 中 raidar 的 `image:` 改为 `yangbingjia1206/raidar:${RAIDAR_TAG}`，在 Dokploy 中重新 Deploy。
 
 ---
 
@@ -217,14 +231,18 @@ docker push yangbingjia1206/raidar:${RAIDAR_TAG}
 
 ---
 
-## 步骤 5：修改 Compose 并重新部署
+## 步骤 5：让 Dokploy 使用新 tag 并重新部署
 
-1. 将 `deploy-spike/configs/docker-compose-medical-server.yml` 中 **raidar** 的 `image:` 改为：
-   ```yaml
-   image: yangbingjia1206/raidar:server-20260311-1
-   ```
-   （目前该仓库的 compose 已改为上述镜像；若你已合并/推送最新 main，可跳过此修改。）
-2. 将该 compose 的变更推送到 Dokploy 使用的仓库（或 Raw），在 Dokploy 中对该 Compose 服务点击 **Deploy** 重新部署。
+当前 compose 已写为：
+
+```yaml
+image: yangbingjia1206/raidar:${RAIDAR_TAG}
+```
+
+因此：
+
+1. **只需修改 `deploy-spike/.env` 里的 `RAIDAR_TAG=...`**，并将 `.env` 的变更推送到 Dokploy 使用的仓库（或 Raw）。
+2. 在 Dokploy 中对该 Compose 服务点击 **Deploy** 重新部署。Dokploy 在执行 `docker compose` 时会自动读取仓库根目录的 `.env`，从而使用新的 tag。
 
 ---
 
