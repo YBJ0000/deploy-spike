@@ -203,6 +203,9 @@ Compose 部署完成后，Mongo 已以 `--replSet rs0` 启动，但尚未执行 
 
 1. 在 Dokploy 的该 Compose 栈里，确认 4 个服务都为 **Running**：`mongodb`、`rabbitmq`、`redis`、`raidar`。
 2. 打开 `raidar` 的 **Logs**，观察是否存在明显的连接失败（常见关键字：`replicaSet` / `rs0` / `MongoTimeoutException` / `RabbitMQ` / `Redis`）。
+3. 若你点 **Open Terminal** 提示：`container ... is not running`，说明 raidar 容器已退出：  
+   - 先下载 logs（或直接在 Logs 页查看最后 50 行）  
+   - 若看到 `GridFsTemplate ... expected single matching bean but found 2`，这是已知启动阻塞：需要用修复后的源码重新构建并推送镜像，然后让 Dokploy 重新拉取（建议用 buildx 推 multi-arch，并考虑换 tag 避免缓存）。见 [docs/build-and-push-raidar-image.md](./docs/build-and-push-raidar-image.md) 的「如果 Dokploy 仍然跑到旧镜像」。
 
 ### 6.2 初始化 rs0 后的数据库验收（在 mongodb 容器终端）
 

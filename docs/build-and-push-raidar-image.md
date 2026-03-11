@@ -7,7 +7,7 @@ Docker Hub 用户名示例：`yangbingjia1206`，请按需替换。
 若方案 A 在 **EXPORTING** 阶段反复报错 `content digest ... not found`（Docker Desktop + containerd 的已知问题），请**改用方案 B**，无需关闭 containerd 即可成功构建并推送。  
 **方案 B 已在实际环境中验证**：在将 `medical-server/app/build.gradle` 恢复为与 main 一致（无 bootBuildImage 专用配置）后，使用 Dockerfile 构建并推送镜像成功。
 
-**当前进度**：方案 B（Dockerfile）已可稳定构建并推送镜像；Compose 已切换为 `yangbingjia1206/raidar:server-latest`，Dokploy 已完成拉取并启动容器（日志出现 `Docker Compose Deployed: ✅`）。  
+**当前进度**：方案 B（Dockerfile）已可稳定构建并推送镜像；Compose 已切换为**带 tag 的镜像**（避免缓存，例如 `yangbingjia1206/raidar:server-20260311-1`）。  
 **注意**：若 Dokploy 运行在 **linux/arm64**（例如 Mac 的 Multipass VM 常为 arm64），而你推送的是 **linux/amd64** 镜像，Dokploy Deploy 时会报：`no matching manifest for linux/arm64/v8`。此时需要按下方「为 arm64 / 多架构推送镜像」重新构建并推送 **arm64 或 multi-arch** 镜像后再 Deploy。  
 后续在 Dokploy 上仍需完成：第四步初始化 MongoDB 副本集（rs0）、可选数据导入、验收 Swagger 与依赖服务。见 [operating-guide.md](../operating-guide.md)。
 
@@ -27,9 +27,15 @@ Docker Hub 用户名示例：`yangbingjia1206`，请按需替换。
 
 ### 步骤 B1：在 medical-server/app 下构建镜像
 
+先定义一个 tag（**强烈推荐每次改代码都换 tag**，避免 Dokploy/服务器本地缓存旧镜像）：
+
+```bash
+export RAIDAR_TAG=server-20260311-1
+```
+
 ```bash
 cd /path/to/medical-server/app
-docker build --platform linux/amd64 -t yangbingjia1206/raidar:server-latest .
+docker build --platform linux/amd64 -t yangbingjia1206/raidar:${RAIDAR_TAG} .
 ```
 
 - 首次构建会拉取 `eclipse-temurin` 镜像并执行 Gradle 编译，耗时可能数分钟。
@@ -53,25 +59,36 @@ docker info | grep Architecture
 ```bash
 cd /path/to/medical-server/app
 docker buildx create --use --name raidar-multiarch 2>/dev/null || docker buildx use raidar-multiarch
-docker buildx build --platform linux/amd64,linux/arm64 -t yangbingjia1206/raidar:server-latest --push .
+docker buildx build --platform linux/amd64,linux/arm64 -t yangbingjia1206/raidar:${RAIDAR_TAG} --push .
 ```
+
+### 如果 Dokploy 仍然跑到旧镜像（tag 更新后仍报同样错误）
+
+如果你已经重新 `--push` 了同一个 tag（例如 `yangbingjia1206/raidar:server-latest`），但 Dokploy 的 `raidar` 日志仍出现**同样的旧错误**，通常是因为 Dokploy 服务器本地还缓存着旧镜像。使用“每次换一个新 tag”的方式最稳。
+
+推荐两种方式之一（优先 1）：
+
+1. **改 tag（最稳）**：每次构建推送都用一个新 tag（如 `server-20260311-1`），然后把 compose 里的 `raidar.image` 改为该新 tag，再 Deploy。这样不会命中缓存。
+2. **强制拉取**：在 Dokploy 侧重新 Deploy 前先执行一次 Pull（若界面提供），或在服务器上删除旧镜像后再 Deploy（仅当你能进入 Dokploy Server 终端）。
+
+你可以用 Dokploy 日志里的 `Image ... Pulled` 以及 Docker Hub 上的 digest 来交叉验证是否拉到了新镜像。
 
 如果你只想先在当前 arm64 Dokploy 上跑通，也可以只推 arm64（不推荐，之后换到 amd64 服务器会拉不到）：
 
 ```bash
-docker buildx build --platform linux/arm64 -t yangbingjia1206/raidar:server-latest --push .
+docker buildx build --platform linux/arm64 -t yangbingjia1206/raidar:${RAIDAR_TAG} --push .
 ```
 
 ### 步骤 B2：登录并推送
 
 ```bash
 docker login
-docker push yangbingjia1206/raidar:server-latest
+docker push yangbingjia1206/raidar:${RAIDAR_TAG}
 ```
 
 ### 步骤 B3：修改 Compose 并重新部署
 
-与下方「步骤 5」相同：将 compose 中 raidar 的 `image:` 改为 `yangbingjia1206/raidar:server-latest`，在 Dokploy 中重新 Deploy。
+与下方「步骤 5」相同：将 compose 中 raidar 的 `image:` 改为 `yangbingjia1206/raidar:${RAIDAR_TAG}`，在 Dokploy 中重新 Deploy。
 
 ---
 
@@ -103,8 +120,8 @@ docker pull --platform linux/amd64 paketobuildpacks/builder-jammy-base:latest
 然后执行构建：
 
 ```bash
-cd /path/to/medical-server/app
-./gradlew bootBuildImage --imageName=yangbingjia1206/raidar:server-latest
+   cd /path/to/medical-server/app
+   ./gradlew bootBuildImage --imageName=yangbingjia1206/raidar:${RAIDAR_TAG}
 ```
 
 - 首次构建会拉取 Paketo 构建镜像，耗时可能较长。
@@ -147,7 +164,7 @@ ERROR: failed to export: saving image: failed to fetch base layers: ... unable t
    ```
    然后再次执行 `./gradlew bootBuildImage ...`。
 
-4. **改用方案 B（Dockerfile 构建）**：若上述 1–3 仍无法解决（尤其在 Docker Desktop 使用 containerd 存储时），请直接使用本文档开头的 **方案 B**：在 `medical-server/app` 下执行 `docker build --platform linux/amd64 -t <用户名>/raidar:server-latest .`，再 `docker push`。Dockerfile 不经过 Buildpacks 导出，可规避该问题。
+4. **改用方案 B（Dockerfile 构建）**：若上述 1–3 仍无法解决（尤其在 Docker Desktop 使用 containerd 存储时），请直接使用本文档开头的 **方案 B**：在 `medical-server/app` 下执行 `docker build --platform linux/amd64 -t <用户名>/raidar:${RAIDAR_TAG} .`，再 `docker push`。Dockerfile 不经过 Buildpacks 导出，可规避该问题。
 
 ### 步骤 2 平台不匹配：`Requested platform 'linux/amd64' but got 'linux/arm64'`
 
@@ -192,7 +209,7 @@ docker login
 ## 步骤 4：推送镜像到 Docker Hub
 
 ```bash
-docker push yangbingjia1206/raidar:server-latest
+docker push yangbingjia1206/raidar:${RAIDAR_TAG}
 ```
 
 - **镜像为公开（public）**：无需在 Dokploy 里配置 Registry，只要 compose 中 `image:` 写对即可拉取。
@@ -204,7 +221,7 @@ docker push yangbingjia1206/raidar:server-latest
 
 1. 将 `deploy-spike/configs/docker-compose-medical-server.yml` 中 **raidar** 的 `image:` 改为：
    ```yaml
-   image: yangbingjia1206/raidar:server-latest
+   image: yangbingjia1206/raidar:server-20260311-1
    ```
    （目前该仓库的 compose 已改为上述镜像；若你已合并/推送最新 main，可跳过此修改。）
 2. 将该 compose 的变更推送到 Dokploy 使用的仓库（或 Raw），在 Dokploy 中对该 Compose 服务点击 **Deploy** 重新部署。

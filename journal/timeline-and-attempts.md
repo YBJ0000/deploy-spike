@@ -52,6 +52,7 @@
 | 2026-03-10 | 方案 3 步骤 4–5：推送镜像并修改 Compose 重新部署 | 成功   | `docker push yangbingjia1206/raidar:server-latest` 成功；compose 中 raidar 的 image 已改为该镜像，在 Dokploy 中完成重新 Deploy。 |
 | 2026-03-11 | Dokploy Deploy 报 no matching manifest (arm64) | 失败   | Dokploy（Multipass VM）为 `linux/arm64`，拉取 `yangbingjia1206/raidar:server-latest` 报 `no matching manifest for linux/arm64/v8`，说明该 tag 只有 amd64。需用 `docker buildx build --platform linux/amd64,linux/arm64 --push` 推送 multi-arch 或至少推送 arm64。 |
 | 2026-03-11 | Dokploy Compose Deployed ✅ | 成功 | Dokploy 日志显示镜像均 Pulled、网络/卷创建完成、容器（mongodb/redis/rabbitmq/raidar）均 Started，最终输出 `Docker Compose Deployed: ✅`。下一步：初始化 MongoDB rs0 并验收 Swagger。 |
+| 2026-03-11 | Raidar 容器启动失败（仍是 GridFsTemplate 注入冲突） | 失败 | 下载 raidar logs（`raidar-20260311_075328.log.txt`）显示仍报：`expected single matching bean but found 2: masterTenantGridFsTemplate, subTenantGridFsTemplate`。结论：Dokploy 仍在运行旧镜像；需用包含修复 commit 的源码重新 buildx build 并 --push（建议换 tag 或确保强制拉取）。 |
 | （示例）   | 用内置 MongoDB     | 失败   | 无法开 rs0     |
 
 ---

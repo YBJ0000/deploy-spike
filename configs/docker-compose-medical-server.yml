@@ -41,7 +41,8 @@ services:
 
   raidar:
     # 使用自建并推送的镜像（方案 3：见 deploy-spike/docs/build-and-push-raidar-image.md）
-    image: yangbingjia1206/raidar:server-latest
+    # 推荐使用“带版本/日期的 tag”避免 Dokploy 侧缓存旧镜像（例如 server-20260311-1）
+    image: yangbingjia1206/raidar:server-20260311-1
     container_name: raidar
     ports:
       - "8080:8080"
