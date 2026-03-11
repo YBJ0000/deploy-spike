@@ -126,17 +126,25 @@ rs.status().ok   // 应返回 1 表示初始化成功
    mongorestore --host <VM IP> --port 27017 -d raidar-master ./raidar-master
    mongorestore --host <VM IP> --port 27017 -d tenant_mp_test_tenant ./tenant_mp_test_tenant
    ```
-4. 在 mongosh 中执行 `show dbs`、`use raidar-master`、`db.getCollectionNames()` 等验证导入结果。
+4. 在 mongosh 会话中执行：
+    ```bash
+   show dbs
+   use raidar-master
+   db.getCollectionNames()
+   use tenant_mp_test_tenant
+   db.getCollectionNames()
+    ```
+   若两个库下都能看到大量业务集合（而不只是 `shedLock`），说明导入成功。
 
 ---
 
 ## 五、验收
 
 - **Dokploy 界面**：在 Project → Service 的 **Deployments**、**Logs** 中确认状态为成功、无报错；侧边栏 **Docker** 中所有容器为 Running。
-- **数据库**：`mongosh --eval "rs.status().ok"` 返回 `1`。
-- **RabbitMQ**：浏览器访问 `http://<VM IP>:15672`，默认 `guest/guest` 登录。
-- **Redis**：在 redis 容器终端执行 `redis-cli ping`，应返回 `PONG`。
-- **Swagger API**：浏览器访问 `http://<VM IP>:8080/swagger-ui/index.html`，能打开并加载接口文档即通过。
+- **数据库**：在 mongosh 中执行 `rs.status().ok` 返回 `1`。
+- **RabbitMQ**：浏览器访问 `http://<VM IP>:15672`，使用 `guest/guest` 登录成功并看到 RabbitMQ Management Dashboard，说明 Raidar HTTP 与 RabbitMQ 管理端口均已对外可用。
+- **Redis**：执行 `redis-cli -h <VM IP> -p 6379 ping`，应返回 `PONG`，确认 Dokploy VM 上的 Redis 实例可从外部连接且正常响应。
+- **Swagger API**：浏览器访问 `http://<VM IP>:8080/swagger-ui/index.html`，能打开并加载接口文档，说明 Raidar HTTP 与 Swagger UI 端口均已对外可用。在完成数据导入后，通过 Swagger UI 调用 `GET /api/spa/page-config` 返回 HTTP 200，响应中 `authenticated=false` 且 `tenantInfo.name="Raidar Software"`，说明在当前 Dokploy 部署下，Raidar 的公开 API 已能正常读到配置数据。
 
 ---
 
