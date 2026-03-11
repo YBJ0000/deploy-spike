@@ -189,17 +189,39 @@ Compose 部署完成后，Mongo 已以 `--replSet rs0` 启动，但尚未执行 
 
 ## 第五步：数据导入（MongoDB 初始数据，可选）
 
-完成第四步 rs0 初始化后，如需导入测试/初始数据（见 [medical-server/app/README.md](../medical-server/app/README.md) 的 db 目录说明）：
+完成第四步 rs0 初始化后，如需导入测试/初始数据（见 [medical-server/app/README.md](../medical-server/app/README.md) 的 db 目录说明），推荐直接在**本机终端**使用 `mongorestore` 连接 Dokploy VM 上的 Mongo：
 
-1. 在 Dokploy 中打开 **mongodb 容器**的**终端**（或 SSH 到服务器后 `docker exec` 进该容器）。
-2. 将 `db_backup.tgz`（或你方提供的备份）上传到服务器或挂载进容器。
-3. 在容器内执行（路径按实际调整）：
+1. **确保可以从本机连上 Dokploy VM 的 Mongo**  
+   在本机终端执行（将 `<VM私网IP>` 替换为你的 Dokploy VM IP，例如 `192.168.64.4`）：
    ```bash
-   mongorestore -d raidar-master ./db_backup/raidar-master
-   mongorestore -d tenant_mp_test_tenant ./db_backup/tenant_mp_test_tenant
+   mongosh "mongodb://<VM私网IP>:27017"
    ```
-
-*（若备份在宿主机，可用 `docker cp` 拷入容器后再执行 mongorestore。）*
+   看到 `rs0 [direct: primary]` 等提示说明连接正常，可在该会话中用 `show dbs` 简单确认。
+2. **在本机解压测试数据归档（若尚未解压）**  
+   切换到 `medical-server/db` 目录（以你的仓库路径为准）：
+   ```bash
+   cd /Users/<your-user>/WorkSpace/medical-server/db
+   tar -xzvf db_backup.tgz
+   ```
+   解压后会得到 `raidar-master/` 与 `tenant_mp_test_tenant/` 两个目录。  
+   > 注意：**这里目录名本身就是 `raidar-master`、`tenant_mp_test_tenant`，不要再人为加 `db_backup/` 前缀**。
+3. **从本机将数据导入 Dokploy VM 上的 Mongo**  
+   仍在 `medical-server/db` 目录下执行（将 `<VM私网IP>` 替换为实际 IP）：
+   ```bash
+   mongorestore --host <VM私网IP> --port 27017 -d raidar-master ./raidar-master
+   mongorestore --host <VM私网IP> --port 27017 -d tenant_mp_test_tenant ./tenant_mp_test_tenant
+   ```
+   - 若看到关于 `--db` / `--collection` 的 deprecated 提示，可暂时忽略；只要没有报路径不存在或连接失败即可。
+4. **在 mongosh 中验证导入结果**  
+   回到第 1 步已连上的 `mongosh` 会话中，依次执行：
+   ```javascript
+   show dbs
+   use raidar-master
+   db.getCollectionNames()
+   use tenant_mp_test_tenant
+   db.getCollectionNames()
+   ```
+   - 若两个库下都能看到大量业务集合（而不只是 `shedLock`），说明导入成功。
 
 ---
 
