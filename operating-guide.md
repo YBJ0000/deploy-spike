@@ -183,7 +183,7 @@ Compose 部署完成后，Mongo 已以 `--replSet rs0` 启动，但尚未执行 
    mongosh --eval "rs.status().ok"
    ```
    若输出为 `1`，说明 rs0 已正常初始化。
-3. 完成初始化后，可以通过 Dokploy 中 `raidar` 的 **Logs** 观察 Mongo 连接情况：若日志中已出现「Discovered replica set primary ... setName='rs0'」等字样，说明应用已经识别并连上 rs0，此时**可以不必额外重启 `raidar` 容器**；若日志仍反复出现 `REPLICA_SET_GHOST` / `MongoTimeoutException`，再考虑在 Dokploy 中对 `raidar` 执行一次 Restart。
+3. 完成初始化后，回到 Dokploy 中**重启 `raidar` 服务**（若未自动重连），使应用连上已初始化的 rs0。
 
 ---
 
@@ -209,14 +209,10 @@ Compose 部署完成后，Mongo 已以 `--replSet rs0` 启动，但尚未执行 
 
 ### 6.1 Dokploy 界面快速验收（无需进容器）
 
-1. 在 Dokploy 的该 Compose 栈里，确认 4 个服务都为 **Running**：`mongodb`、`rabbitmq`、`redis`、`raidar`。
-2. 打开 `raidar` 的 **Logs**，观察是否存在明显的连接失败（常见关键字：`replicaSet` / `rs0` / `MongoTimeoutException` / `RabbitMQ` / `Redis`）。
-3. 若你点 **Open Terminal** 提示：`container ... is not running`，说明 raidar 容器已退出：  
-   - 先下载 logs（或直接在 Logs 页查看最后 50 行）  
-   - 若看到 `GridFsTemplate ... expected single matching bean but found 2`，这是已知启动阻塞：需要用修复后的源码重新构建并推送镜像，然后让 Dokploy 重新拉取（建议用 buildx 推 multi-arch，并考虑换 tag 避免缓存）。
-   - 若看到 `ConversionService ... expected single matching bean but found 2`（例如 `templateFormattingConversionService,mvcConversionService`），同样属于启动阻塞：需要在 `ThymeleafService` 的注入点使用 `@Qualifier("templateFormattingConversionService")`（已在 `medical-server` 修复并提交）。
-   - 若看到 `invalid reference format` 且日志中尝试拉取 `yangbingjia1206/raidar:`（tag 为空），通常是因为 Dokploy 环境中未设置 `RAIDAR_TAG`；请在 Dokploy 的 Environment Settings 中增加 `RAIDAR_TAG=<与你本地 .env 相同的值>`，再重新 Deploy。
-   - 以上两类问题的统一排查入口见 [findings/raidar-startup-failures.md](./findings/raidar-startup-failures.md)。
+
+1. 在 Dokploy 该 Compose 栈的 **Logs**，观察是否存在明显的连接失败（常见关键字：`replicaSet` / `rs0` / `MongoTimeoutException` / `RabbitMQ` / `Redis`）。
+2. 若出现 `invalid reference format` 且日志中尝试拉取 `yangbingjia1206/raidar:`（tag 为空），通常是因为 Dokploy 环境中未设置 `RAIDAR_TAG`；请在 Dokploy 的 Environment Settings 中增加 `RAIDAR_TAG=<与你本地 .env 相同的值>`，再重新 Deploy。
+
 
 ### 6.2 初始化 rs0 后的数据库验收（在 mongodb 容器终端）
 
@@ -229,7 +225,7 @@ mongosh --eval "rs.status().ok"
 - 若输出 `1`：说明 rs0 已就绪。
 - 若报 “not yet initialized”：按第四步执行 `rs.initiate()`，然后再执行一次上述命令确认。
 
-完成后，可在 Dokploy 的 `raidar` 日志中确认：若已经发现并连接到 rs0 的 primary（如日志包含「Discovered replica set primary ... setName='rs0'」），则无需再次重启 `raidar`；只有在仍反复出现 `REPLICA_SET_GHOST` / `MongoTimeoutException` 等连接异常时，才需要在 Dokploy 中对 `raidar` 执行 Restart 以重新建立连接。
+完成后，**重启 `raidar` 容器**（或在 Dokploy 对 `raidar` 执行 Restart），确保它重新连接到已初始化的副本集。
 
 ### 6.3 RabbitMQ / Redis 验收（可选但建议）
 
