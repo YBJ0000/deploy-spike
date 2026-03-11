@@ -4,7 +4,8 @@
 Docker Hub 用户名示例：`yangbingjia1206`，请按需替换。
 
 **两种构建方式**：**方案 A** 使用 Spring Boot 的 `bootBuildImage`（Cloud Native Buildpacks）；**方案 B** 使用 `medical-server/app` 下的 **Dockerfile**（`docker build`）。  
-若方案 A 在 **EXPORTING** 阶段反复报错 `content digest ... not found`（Docker Desktop + containerd 的已知问题），请**改用方案 B**，无需关闭 containerd 即可成功构建并推送。
+若方案 A 在 **EXPORTING** 阶段反复报错 `content digest ... not found`（Docker Desktop + containerd 的已知问题），请**改用方案 B**，无需关闭 containerd 即可成功构建并推送。  
+**方案 B 已在实际环境中验证**：在将 `medical-server/app/build.gradle` 恢复为与 main 一致（无 bootBuildImage 专用配置）后，使用 Dockerfile 构建并推送镜像成功。
 
 ---
 
@@ -16,9 +17,9 @@ Docker Hub 用户名示例：`yangbingjia1206`，请按需替换。
 
 ---
 
-# 方案 B：Dockerfile 构建（推荐：当 bootBuildImage 反复在 EXPORTING 失败时）
+# 方案 B：Dockerfile 构建（推荐，已验证）
 
-不经过 Buildpacks，直接 `docker build`，可规避「content digest not found」等导出问题。
+不经过 Buildpacks，直接 `docker build`，可规避「content digest not found」等导出问题。在 Mac + Docker Desktop、`build.gradle` 与 main 一致的前提下已成功构建并推送。
 
 ### 步骤 B1：在 medical-server/app 下构建镜像
 

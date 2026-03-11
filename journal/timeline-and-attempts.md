@@ -47,6 +47,8 @@
 | 2026-03-10 | 按文档清理缓存后再次 bootBuildImage | 失败   | 清理后 `docker pull` 在 Mac arm64 上拉得 run/builder 为 **linux/arm64**，构建请求 **linux/amd64**，报错：`Image platform mismatch ... Requested platform 'linux/amd64' but got 'linux/arm64'`。处理：build.gradle 增加 `imagePlatform = "linux/amd64"`；预拉时使用 `docker pull --platform linux/amd64 ...`，见 docs/build-and-push-raidar-image.md |
 | 2026-03-10 | 预拉 amd64 镜像后 / 删镜像后由构建拉取，再执行 bootBuildImage | 失败   | 两种方式均在 **EXPORTING** 再次报错 `content digest sha256:5d23b2b93067195845d0fd3fa7ce2e88...: not found`，与 Docker Desktop containerd 存储兼容问题一致。 |
 | 2026-03-10 | 引入方案 B：Dockerfile 构建 | 已落实 | 在 medical-server/app 新增 Dockerfile + .dockerignore，用 `docker build --platform linux/amd64` 构建镜像，不经过 Buildpacks 导出；docs/build-and-push-raidar-image.md 将方案 B 置于文首并推荐在 EXPORTING 反复失败时使用；README 补充 Dockerfile 说明。 |
+| 2026-03-10 | 方案 B Dockerfile 构建 | 成功   | 在本机执行 `docker build --platform linux/amd64 -t yangbingjia1206/raidar:server-latest .` 构建成功。 |
+| 2026-03-10 | 恢复 build.gradle 至 main 后再次方案 B 构建 | 成功   | 将 medical-server/app/build.gradle 恢复为与 main (edd8be23) 一致并提交；再次用 Dockerfile 构建验证通过，确认无需在 build.gradle 中保留 bootBuildImage 专用配置。 |
 | （示例）   | 用内置 MongoDB     | 失败   | 无法开 rs0     |
 
 ---
@@ -55,6 +57,6 @@
 
 （在探索结束后填写：采用哪种部署方式、关键配置、文档索引。）
 
-- 推荐方式：自建 Raidar 镜像时，若本机 bootBuildImage 在 EXPORTING 反复失败，优先使用 **方案 B（Dockerfile 构建）**；否则可用方案 A（bootBuildImage）。
-- 关键配置/文档：见 [docs/build-and-push-raidar-image.md](../docs/build-and-push-raidar-image.md)（含方案 A/B）、[configs/docker-compose-medical-server.yml](../configs/docker-compose-medical-server.yml)、medical-server/app/Dockerfile。
-- 已知 blocker / 后续事项：Docker Desktop + containerd 下 Buildpacks 导出仍可能失败；方案 B 可规避。部署到 Dokploy 后仍需完成 MongoDB rs0 初始化、可选数据导入与验证。
+- 推荐方式：自建 Raidar 镜像时优先使用 **方案 B（Dockerfile 构建）**，已在恢复 build.gradle 至 main 后验证通过；方案 A（bootBuildImage）在 Docker Desktop + containerd 下易在 EXPORTING 失败，可作备选。
+- 关键配置/文档：见 [docs/build-and-push-raidar-image.md](../docs/build-and-push-raidar-image.md)（含方案 A/B）、[configs/docker-compose-medical-server.yml](../configs/docker-compose-medical-server.yml)、medical-server/app/Dockerfile。medical-server 的 `app/build.gradle` 已恢复为与 main 一致，无需 bootBuildImage 专用配置。
+- 已知 blocker / 后续事项：部署到 Dokploy 后仍需完成 MongoDB rs0 初始化、可选数据导入与验证。
