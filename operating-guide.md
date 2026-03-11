@@ -127,6 +127,16 @@
    - 应用已配置 `replica-set-name: rs0`、`database: raidar-master`（见 medical-server `application.yml`），只需保证 Mongo 服务名为 `mongodb` 并在部署后执行一次 `rs.initiate()`。  
    在该配置页保存后点击 **Deploy**，等待镜像拉取与容器启动。
 
+### Deploy 时拉取的是什么？需要本地构建或推送到 Docker Hub 吗？
+
+当前这份 compose（[configs/docker-compose-medical-server.yml](./configs/docker-compose-medical-server.yml)）**只使用现成镜像**，没有 `build:` 步骤：
+
+- Dokploy 点击 **Deploy** 后，会先从你选的 GitHub 仓库（如 deploy-spike）拉取 **compose 文件本身**（即该 YAML）。
+- 然后根据 YAML 里的 **`image:`** 在运行 Dokploy 的机器上执行 `docker pull`：拉取 `mongo:8`、`rabbitmq:3-management`、`redis:7-alpine`、`ghoshorn/raidar:server-latest` 等镜像，再启动容器。
+
+因此：**deploy-spike 不需要存 medical-server 的代码，也不需要你本地构建镜像再推送**。Raidar 的“代码”已经打成镜像并放在 Docker Hub 的 `ghoshorn/raidar:server-latest`（见 [medical-server/app/README.md](../medical-server/app/README.md)）；compose 只是引用这个镜像。  
+**唯一可能需要的额外操作**：若 `ghoshorn/raidar` 是 **Docker Hub 私有仓库**，需在 Dokploy 的 **Settings → Registries（或镜像仓库）** 中配置该 Docker Hub 账号，否则部署时 `docker pull ghoshorn/raidar:server-latest` 会因未登录而失败。
+
 ### Select repository 里没有 medical-server（组织私有库）时怎么办？
 
 Dokploy 的 Provider 若选 **GitHub**，则「Select repository」只会列出**当前已连接 GitHub 账户有权限**的仓库。若 medical-server 在公司 **GitHub 组织（Organization）** 下且为 **private**，个人账号连接后**不会**在列表里看到该 repo。
@@ -142,7 +152,7 @@ Dokploy 的 Provider 若选 **GitHub**，则「Select repository」只会列出*
 | **C. 组织安装 GitHub App** | 请公司 **GitHub 组织管理员** 在 GitHub 中安装/授权当前 Dokploy 实例使用的 **GitHub App**，并勾选可访问的仓库（含 medical-server）。安装后，若 Dokploy 支持多账户/多安装，在「Github Account」中选该组织，即可在 Repository 里看到 medical-server。 | 需要组织侧权限与管理员操作。 |
 | **D. Fork 到个人账号** | 若组织允许 Fork：在 GitHub 上把 medical-server fork 到你个人账号，在 fork 里添加或保留 `docker-compose.yml`（可从 deploy-spike 的 `configs/docker-compose-medical-server.yml` 复制），在 Dokploy 里选该 fork 为 Repository，Compose Path 指向该文件。 | Fork 后你个人账号可见该 repo，Dokploy 即可列出；需管理员先开放 fork。 |
 
-**建议优先尝试 A**：若 deploy-spike 已在你的 GitHub 上，直接选该 repo 并设置 Compose Path 为 `configs/docker-compose-medical-server.yml` 即可完成部署，无需动 medical-server 或组织权限。
+**建议优先尝试 A**：若 deploy-spike 已在你的 GitHub 上，直接选该 repo 并设置 Compose Path 为 `configs/docker-compose-medical-server.yml`，保存后即可在该 Compose 的配置页点 **Deploy** 进行部署（无需动 medical-server 或组织权限）。部署时 Dokploy 会从 deploy-spike 拉取**该 YAML 文件**，再按 YAML 中的 `image:` 从 Docker Hub 等拉取镜像并启动容器；见下方「Deploy 时拉取的是什么？」。
 
 ### 若 Dokploy 的 Compose 不支持多服务或格式有差异
 
