@@ -137,6 +137,16 @@
 因此：**deploy-spike 不需要存 medical-server 的代码，也不需要你本地构建镜像再推送**。Raidar 的“代码”已经打成镜像并放在 Docker Hub 的 `ghoshorn/raidar:server-latest`（见 [medical-server/app/README.md](../medical-server/app/README.md)）；compose 只是引用这个镜像。  
 **唯一可能需要的额外操作**：若 `ghoshorn/raidar` 是 **Docker Hub 私有仓库**，需在 Dokploy 的 **Settings → Registries（或镜像仓库）** 中配置该 Docker Hub 账号，否则部署时 `docker pull ghoshorn/raidar:server-latest` 会因未登录而失败。
 
+### Raidar 镜像拉取失败（ghoshorn/raidar 不可用）时怎么办？
+
+若 Deploy 报错：`pull access denied for ghoshorn/raidar, repository does not exist or may require 'docker login'`，说明当前无法使用该镜像（私有且无权限，或该仓库已不可用）。此时需**换用其他可拉取的 Raidar 镜像**。详见 [findings/raidar-image-source.md](./findings/raidar-image-source.md)，这里仅摘要：
+
+- **方案 3（推荐，可完全自助）**：在本地从 medical-server 源码执行 `./gradlew bootBuildImage --imageName=<你的DockerHub用户名>/raidar:server-latest`，再 `docker push` 到你自己的 Docker Hub；把 compose 里 raidar 的 `image:` 改为该镜像；若设为私有，在 Dokploy 的 Registries 中配置你的 Docker Hub。**不需要**公司 GitHub 管理员或 Fork——Docker Hub 与 GitHub 是两套账号，你只要有源码即可构建并推到你自己的 Hub。
+- **方案 2**：若组织开放 Fork，可把 medical-server fork 到个人账号，再在 Dokploy 用 Application 从 fork 构建，或由 fork 的 CI 构建并推送镜像，compose 引用该镜像。
+- **方案 1**：由公司组织管理员在 GitHub 安装 Dokploy 的 GitHub App，在 Dokploy 从官方 repo 构建或使用公司推送的镜像并配置 Registry。
+
+修改 compose 后需将变更推送到 deploy-spike（或更新 Raw），再在 Dokploy 重新 Deploy。
+
 ### Select repository 里没有 medical-server（组织私有库）时怎么办？
 
 Dokploy 的 Provider 若选 **GitHub**，则「Select repository」只会列出**当前已连接 GitHub 账户有权限**的仓库。若 medical-server 在公司 **GitHub 组织（Organization）** 下且为 **private**，个人账号连接后**不会**在列表里看到该 repo。

@@ -42,6 +42,7 @@
 | 2026-03-10 | 在 Cursor 环境自动执行 `brew install --cask multipass` | 未完成 | 安装需 sudo 密码，无交互环境无法输入；已记录于 [docs/mac-multipass-dokploy.md](../docs/mac-multipass-dokploy.md)，需在本机终端手动执行第一步 |
 | 2026-03-10 | 在 Multipass VM 内执行安装脚本安装 Dokploy | 成功 | 输出 “Congratulations, Dokploy is installed!”；进入自托管面板继续后续步骤 |
 | 2026-03-10 | Compose 部署时从 GitHub Select repository 选 medical-server | 不可见 | medical-server 为公司组织私有库，个人 GitHub 连接后看不到；改用个人有权限的 repo（如 deploy-spike）作 compose 来源，或 Raw/组织授权/Fork，见 operating-guide |
+| 2026-03-10 | Deploy Compose 拉取 ghoshorn/raidar:server-latest | 失败   | pull access denied；该镜像私有/不可用，需自建并推送或改用 Fork/公司构建，见 findings/raidar-image-source.md |
 | （示例）   | 用内置 MongoDB     | 失败   | 无法开 rs0     |
 
 ---

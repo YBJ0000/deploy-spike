@@ -11,6 +11,7 @@
 | [journal/timeline-and-attempts.md](./journal/timeline-and-attempts.md) | 时间线、尝试过的方案与错误记录 |
 | [journal/2026-03-10-session-1.md](./journal/2026-03-10-session-1.md) | 按会话记录的具体操作与结论 |
 | [findings/self-hosted-vs-cloud.md](./findings/self-hosted-vs-cloud.md) | 自托管 vs Cloud、与 issue #157 符合性、Mac 用 Multipass 获得 Linux |
+| [findings/raidar-image-source.md](./findings/raidar-image-source.md) | Raidar 镜像拉取失败时的方案（自建推送 / Fork / 公司 GitHub） |
 | [docs/mac-multipass-dokploy.md](./docs/mac-multipass-dokploy.md) | Mac + Multipass 安装 Dokploy 逐步命令清单（含排错记录） |
 | [configs/docker-compose-medical-server.yml](./configs/docker-compose-medical-server.yml) | medical-server 栈的 Compose 草案（Mongo rs0 + RabbitMQ + Redis + Raidar） |
 
