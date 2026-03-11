@@ -115,27 +115,21 @@
    - **Compose Type**：选 **Docker Compose**。  
    - **Description**：可选，如「Mongo + RabbitMQ + Redis + Raidar 整体栈」。  
    填完后点击 **Create**。
-3. **第二步：在后续界面填写 YAML**。创建完成后会进入该 Compose 的配置页，此处才有 **docker-compose 的 YAML 编辑区**。将 [configs/docker-compose-medical-server.yml](./configs/docker-compose-medical-server.yml) 的内容粘贴进去（或按需修改后粘贴）。  
-   **Compose 内容要点**：
-   - **mongodb**：镜像 `mongo:8`，命令带 `--replSet rs0`，**服务名必须为 `mongodb`**（rs0 的 hostname 依赖此名）；挂载卷持久化。
-   - **rabbitmq**：镜像 `rabbitmq:3-management`，环境变量 `RABBITMQ_DEFAULT_USER/PASS=guest`；应用里用 `RABBITMQ_HOST=rabbitmq`。
-   - **redis**：镜像 `redis:7-alpine`；应用里用 `SPRING_DATA_REDIS_HOST=redis`。
-   - **raidar**：镜像 `ghoshorn/raidar:server-latest`（与 [medical-server/app/README.md](../medical-server/app/README.md) 一致），环境变量：
-     - `MONGODB_HOST=mongodb`
-     - `RABBITMQ_HOST=rabbitmq`、`RABBITMQ_PORT=5672`、`RABBITMQ_USERNAME=guest`、`RABBITMQ_PASSWORD=guest`
-     - `SPRING_DATA_REDIS_HOST=redis`
-   - 应用已配置 `replica-set-name: rs0`、`database: raidar-master`（见 medical-server `application.yml`），只需保证 Mongo 服务名为 `mongodb` 并在部署后执行一次 `rs.initiate()`。  
-   在该配置页保存后点击 **Deploy**，等待镜像拉取与容器启动。
+3. **第二步：在后续界面填写 YAML**。创建完成后会进入该 Compose 的配置页，此处才有 **docker-compose 的 YAML 编辑区**。  
+   直接将 [configs/docker-compose-medical-server.yml](./configs/docker-compose-medical-server.yml) **全文粘贴**进去，然后点 **Save** → **Deploy** 即可。  
+   - 该文件已包含 Mongo（`rs0`）、RabbitMQ、Redis、Raidar 的完整定义；你通常只需要确认 `raidar.image` 是你能拉取的镜像（当前为 `yangbingjia1206/raidar:server-latest`）。
 
 ### Deploy 时拉取的是什么？需要本地构建或推送到 Docker Hub 吗？
 
-当前这份 compose（[configs/docker-compose-medical-server.yml](./configs/docker-compose-medical-server.yml)）**只使用现成镜像**，没有 `build:` 步骤：
+当前这份 compose（[configs/docker-compose-medical-server.yml](./configs/docker-compose-medical-server.yml)）没有 `build:`，只会按 `image:` 拉取镜像：
 
 - Dokploy 点击 **Deploy** 后，会先从你选的 GitHub 仓库（如 deploy-spike）拉取 **compose 文件本身**（即该 YAML）。
-- 然后根据 YAML 里的 **`image:`** 在运行 Dokploy 的机器上执行 `docker pull`：拉取 `mongo:8`、`rabbitmq:3-management`、`redis:7-alpine`、`ghoshorn/raidar:server-latest` 等镜像，再启动容器。
+- 然后根据 YAML 里的 **`image:`** 在运行 Dokploy 的机器上执行 `docker pull`：拉取 `mongo:8`、`rabbitmq:3-management`、`redis:7-alpine`、`yangbingjia1206/raidar:server-latest` 等镜像，再启动容器。
 
-因此：**deploy-spike 不需要存 medical-server 的代码，也不需要你本地构建镜像再推送**。Raidar 的“代码”已经打成镜像并放在 Docker Hub 的 `ghoshorn/raidar:server-latest`（见 [medical-server/app/README.md](../medical-server/app/README.md)）；compose 只是引用这个镜像。  
-**唯一可能需要的额外操作**：若 `ghoshorn/raidar` 是 **Docker Hub 私有仓库**，需在 Dokploy 的 **Settings → Registries（或镜像仓库）** 中配置该 Docker Hub 账号，否则部署时 `docker pull ghoshorn/raidar:server-latest` 会因未登录而失败。
+因此：deploy-spike 不需要存 medical-server 的代码；你只需要确保 `raidar.image` 指向一个 Dokploy 机器可拉取的镜像即可。  
+- **若镜像是 public**：不需要在 Dokploy 配 Docker Registry，直接 Deploy 即可拉取。  
+- **若镜像是 private**：需要在 Dokploy 的 **Settings → Docker Registry** 中添加 Docker Hub（`docker.io` + username + password/token），否则会 `pull access denied`。  
+本次已采用 **方案 3**：本地构建并推送 `yangbingjia1206/raidar:server-latest`，compose 已切换到该镜像；构建/推送步骤见 [docs/build-and-push-raidar-image.md](./docs/build-and-push-raidar-image.md)。
 
 ### Raidar 镜像拉取失败（ghoshorn/raidar 不可用）时怎么办？
 

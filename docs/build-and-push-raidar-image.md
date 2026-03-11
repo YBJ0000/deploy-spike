@@ -177,6 +177,7 @@ docker push yangbingjia1206/raidar:server-latest
    ```yaml
    image: yangbingjia1206/raidar:server-latest
    ```
+   （目前该仓库的 compose 已改为上述镜像；若你已合并/推送最新 main，可跳过此修改。）
 2. 将该 compose 的变更推送到 Dokploy 使用的仓库（或 Raw），在 Dokploy 中对该 Compose 服务点击 **Deploy** 重新部署。
 
 ---
