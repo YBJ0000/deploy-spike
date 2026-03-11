@@ -109,8 +109,14 @@
 ### 操作步骤
 
 1. 进入已创建的项目（如 `medical-server`），点击 **Create service**，选择 **Compose**。
-2. 填写 Compose 名称（例如 `medical-server-stack`），在 YAML 编辑区粘贴或编写 `docker-compose` 内容。
-3. **Compose 内容要点**（可直接参考 [configs/docker-compose-medical-server.yml](./configs/docker-compose-medical-server.yml)）：
+2. **第一步：Create Compose 表单**（当前界面没有 YAML，只填元数据）  
+   - **Name**：填本 Compose 栈的名称，例如 `medical-server-stack`（不要用默认的 Frontend）。  
+   - **App Name**：一般为项目或应用前缀，若界面已带出 `medicalserver-` 之类可保留或改成 `medical-server`，保持与项目一致即可。  
+   - **Compose Type**：选 **Docker Compose**。  
+   - **Description**：可选，如「Mongo + RabbitMQ + Redis + Raidar 整体栈」。  
+   填完后点击 **Create**。
+3. **第二步：在后续界面填写 YAML**。创建完成后会进入该 Compose 的配置页，此处才有 **docker-compose 的 YAML 编辑区**。将 [configs/docker-compose-medical-server.yml](./configs/docker-compose-medical-server.yml) 的内容粘贴进去（或按需修改后粘贴）。  
+   **Compose 内容要点**：
    - **mongodb**：镜像 `mongo:8`，命令带 `--replSet rs0`，**服务名必须为 `mongodb`**（rs0 的 hostname 依赖此名）；挂载卷持久化。
    - **rabbitmq**：镜像 `rabbitmq:3-management`，环境变量 `RABBITMQ_DEFAULT_USER/PASS=guest`；应用里用 `RABBITMQ_HOST=rabbitmq`。
    - **redis**：镜像 `redis:7-alpine`；应用里用 `SPRING_DATA_REDIS_HOST=redis`。
@@ -118,8 +124,8 @@
      - `MONGODB_HOST=mongodb`
      - `RABBITMQ_HOST=rabbitmq`、`RABBITMQ_PORT=5672`、`RABBITMQ_USERNAME=guest`、`RABBITMQ_PASSWORD=guest`
      - `SPRING_DATA_REDIS_HOST=redis`
-   - 应用已配置 `replica-set-name: rs0`、`database: raidar-master`（见 medical-server `application.yml`），只需保证 Mongo 服务名为 `mongodb` 并在部署后执行一次 `rs.initiate()`。
-4. 保存并点击 **Deploy**，等待镜像拉取与容器启动。
+   - 应用已配置 `replica-set-name: rs0`、`database: raidar-master`（见 medical-server `application.yml`），只需保证 Mongo 服务名为 `mongodb` 并在部署后执行一次 `rs.initiate()`。  
+   在该配置页保存后点击 **Deploy**，等待镜像拉取与容器启动。
 
 ### 若 Dokploy 的 Compose 不支持多服务或格式有差异
 
