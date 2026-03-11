@@ -12,7 +12,7 @@
 - **正确访问方式（本机 Multipass）**：使用 `multipass list` 看到的 VM 私网 IP（`192.168.64.x`）访问 `http://<VM私网IP>:3000`。  
   安装脚本打印的 `http://<公网/出口IP>:3000` 在本机场景可能不可用（未做端口映射）。
 - **已完成**：2.1 初始化（创建管理员账号）、2.2 登录并创建项目（项目名 `medical-server`）；**第三步** Compose 整体部署（Mongo + RabbitMQ + Redis + Raidar）；方案 3（自建镜像 `yangbingjia1206/raidar:server-latest`）并完成 Deploy（日志出现 `Docker Compose Deployed: ✅`，容器均 Started）。
-- **你当前下一步**：按 **第四步** 在 Dokploy 中初始化 MongoDB 副本集（rs0），然后按 **第六步** 逐项验收（Swagger/依赖服务/日志）。
+- **你当前下一步**：先修复 `medical-server` 的启动阻塞（见下方 6.1 的“注入冲突”排错与 [findings/raidar-startup-failures.md](./findings/raidar-startup-failures.md)），用新 tag 重新 buildx+push+Deploy；随后按 **第四步** 初始化 MongoDB 副本集（rs0），再按 **第六步** 逐项验收（Swagger/依赖服务/日志）。
 
 （更详细的 VM/IP 说明与排错见 [docs/mac-multipass-dokploy.md](./docs/mac-multipass-dokploy.md)。）
 
@@ -117,7 +117,7 @@
    填完后点击 **Create**。
 3. **第二步：在后续界面填写 YAML**。创建完成后会进入该 Compose 的配置页，此处才有 **docker-compose 的 YAML 编辑区**。  
    直接将 [configs/docker-compose-medical-server.yml](./configs/docker-compose-medical-server.yml) **全文粘贴**进去，然后点 **Save** → **Deploy** 即可。  
-   - 该文件已包含 Mongo（`rs0`）、RabbitMQ、Redis、Raidar 的完整定义；你通常只需要确认 `raidar.image` 是你能拉取的镜像（当前为 `yangbingjia1206/raidar:server-latest`）。
+   - 该文件已包含 Mongo（`rs0`）、RabbitMQ、Redis、Raidar 的完整定义；你通常只需要确认 `raidar.image` 是你能拉取的镜像（当前为 `yangbingjia1206/raidar:server-20260311-1`）。
 
 ### Deploy 时拉取的是什么？需要本地构建或推送到 Docker Hub 吗？
 
@@ -205,7 +205,9 @@ Compose 部署完成后，Mongo 已以 `--replSet rs0` 启动，但尚未执行 
 2. 打开 `raidar` 的 **Logs**，观察是否存在明显的连接失败（常见关键字：`replicaSet` / `rs0` / `MongoTimeoutException` / `RabbitMQ` / `Redis`）。
 3. 若你点 **Open Terminal** 提示：`container ... is not running`，说明 raidar 容器已退出：  
    - 先下载 logs（或直接在 Logs 页查看最后 50 行）  
-   - 若看到 `GridFsTemplate ... expected single matching bean but found 2`，这是已知启动阻塞：需要用修复后的源码重新构建并推送镜像，然后让 Dokploy 重新拉取（建议用 buildx 推 multi-arch，并考虑换 tag 避免缓存）。见 [docs/build-and-push-raidar-image.md](./docs/build-and-push-raidar-image.md) 的「如果 Dokploy 仍然跑到旧镜像」。
+   - 若看到 `GridFsTemplate ... expected single matching bean but found 2`，这是已知启动阻塞：需要用修复后的源码重新构建并推送镜像，然后让 Dokploy 重新拉取（建议用 buildx 推 multi-arch，并考虑换 tag 避免缓存）。
+   - 若看到 `ConversionService ... expected single matching bean but found 2`（例如 `templateFormattingConversionService,mvcConversionService`），同样属于启动阻塞：需要在 `ThymeleafService` 的注入点使用 `@Qualifier("templateFormattingConversionService")`（已在 `medical-server` 修复并提交）。
+   - 以上两类问题的统一排查入口见 [findings/raidar-startup-failures.md](./findings/raidar-startup-failures.md)。
 
 ### 6.2 初始化 rs0 后的数据库验收（在 mongodb 容器终端）
 
