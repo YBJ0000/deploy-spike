@@ -231,9 +231,11 @@ Compose 部署完成后，Mongo 已以 `--replSet rs0` 启动，但尚未执行 
 
 ### 6.1 Dokploy 界面快速验收（无需进容器）
 
+1. 在 Dokploy 界面，找到我们创建的 Project 的 Service 的 **Deployments** 页面，查看最新的一条是否为 `Done` 状态，点击 View 查看详情。
+2. 在当前 Service 的 **Logs** 页面，观察是否存在明显的连接失败（常见关键字：`replicaSet` / `rs0` / `MongoTimeoutException` / `RabbitMQ` / `Redis`）。
+3. 在 Dokploy 界面侧边栏找到 **Docker** 容器列表，查看是否所有容器都处于 `Running` 状态。
 
-1. 在 Dokploy 该 Compose 栈的 **Logs**，观察是否存在明显的连接失败（常见关键字：`replicaSet` / `rs0` / `MongoTimeoutException` / `RabbitMQ` / `Redis`）。
-2. 若出现 `invalid reference format` 且日志中尝试拉取 `yangbingjia1206/raidar:`（tag 为空），通常是因为 Dokploy 环境中未设置 `RAIDAR_TAG`；请在 Dokploy 的 Environment Settings 中增加 `RAIDAR_TAG=<与你本地 .env 相同的值>`，再重新 Deploy。
+若出现 `invalid reference format` 且日志中尝试拉取 `yangbingjia1206/raidar:`（tag 为空），通常是因为 Dokploy 环境中未设置 `RAIDAR_TAG`；请在 Dokploy 的 Environment Settings 中增加 `RAIDAR_TAG=<与你本地 .env 相同的值>`，再重新 Deploy。
 
 
 ### 6.2 初始化 rs0 后的数据库验收（在 mongodb 容器终端）
