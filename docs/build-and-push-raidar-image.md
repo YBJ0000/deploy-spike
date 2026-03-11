@@ -7,9 +7,9 @@ Docker Hub 用户名示例：`yangbingjia1206`，请按需替换。
 若方案 A 在 **EXPORTING** 阶段反复报错 `content digest ... not found`（Docker Desktop + containerd 的已知问题），请**改用方案 B**，无需关闭 containerd 即可成功构建并推送。  
 **方案 B 已在实际环境中验证**：在将 `medical-server/app/build.gradle` 恢复为与 main 一致（无 bootBuildImage 专用配置）后，使用 Dockerfile 构建并推送镜像成功。
 
-**当前进度**：方案 B（Dockerfile）已可稳定构建并推送镜像；Compose 已切换为 `yangbingjia1206/raidar:server-latest`。  
-**但**：若 Dokploy 运行在 **linux/arm64**（例如 Mac 的 Multipass VM 常为 arm64），而你推送的是 **linux/amd64** 镜像，Dokploy Deploy 时会报：`no matching manifest for linux/arm64/v8`。此时需要按下方「为 arm64 / 多架构推送镜像」重新构建并推送 **arm64 或 multi-arch** 镜像后再 Deploy。  
-后续在 Dokploy 上仍需完成：第四步初始化 MongoDB 副本集（rs0）、可选数据导入、验证服务与 Swagger。见 [operating-guide.md](../operating-guide.md)。
+**当前进度**：方案 B（Dockerfile）已可稳定构建并推送镜像；Compose 已切换为 `yangbingjia1206/raidar:server-latest`，Dokploy 已完成拉取并启动容器（日志出现 `Docker Compose Deployed: ✅`）。  
+**注意**：若 Dokploy 运行在 **linux/arm64**（例如 Mac 的 Multipass VM 常为 arm64），而你推送的是 **linux/amd64** 镜像，Dokploy Deploy 时会报：`no matching manifest for linux/arm64/v8`。此时需要按下方「为 arm64 / 多架构推送镜像」重新构建并推送 **arm64 或 multi-arch** 镜像后再 Deploy。  
+后续在 Dokploy 上仍需完成：第四步初始化 MongoDB 副本集（rs0）、可选数据导入、验收 Swagger 与依赖服务。见 [operating-guide.md](../operating-guide.md)。
 
 ---
 

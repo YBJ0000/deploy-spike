@@ -11,8 +11,8 @@
 - **自托管 Dokploy 已安装成功**（在 Mac 的 Multipass VM `dokploy-vm` 内）。
 - **正确访问方式（本机 Multipass）**：使用 `multipass list` 看到的 VM 私网 IP（`192.168.64.x`）访问 `http://<VM私网IP>:3000`。  
   安装脚本打印的 `http://<公网/出口IP>:3000` 在本机场景可能不可用（未做端口映射）。
-- **已完成**：2.1 初始化（创建管理员账号）、2.2 登录并创建项目（项目名 `medical-server`）；**第三步** Compose 整体部署（Mongo + RabbitMQ + Redis + Raidar）；方案 3 步骤 4–5（镜像 `yangbingjia1206/raidar:server-latest` 已推送到 Docker Hub，Compose 已改为该镜像并在 Dokploy 中重新 Deploy）。
-- **你当前下一步**：按 **第四步** 在 Dokploy 中初始化 MongoDB 副本集（rs0），再可选做数据导入与验证。
+- **已完成**：2.1 初始化（创建管理员账号）、2.2 登录并创建项目（项目名 `medical-server`）；**第三步** Compose 整体部署（Mongo + RabbitMQ + Redis + Raidar）；方案 3（自建镜像 `yangbingjia1206/raidar:server-latest`）并完成 Deploy（日志出现 `Docker Compose Deployed: ✅`，容器均 Started）。
+- **你当前下一步**：按 **第四步** 在 Dokploy 中初始化 MongoDB 副本集（rs0），然后按 **第六步** 逐项验收（Swagger/依赖服务/日志）。
 
 （更详细的 VM/IP 说明与排错见 [docs/mac-multipass-dokploy.md](./docs/mac-multipass-dokploy.md)。）
 
@@ -197,11 +197,41 @@ Compose 部署完成后，Mongo 已以 `--replSet rs0` 启动，但尚未执行 
 
 ## 第六步：验证
 
-1. 在 Dokploy 中查看 **raidar**（Raidar Server）服务状态为 **Running**，日志无报错。
-2. 若已配置端口或域名，在浏览器访问：  
-   `http://<IP或域名>:8080/swagger-ui/index.html`  
-   确认 Swagger UI 可打开并调通关键接口（与 [medical-server/app/README.md](../medical-server/app/README.md) 一致）。
-3. 确认 Mongo 已执行 `rs.initiate()`，应用环境变量中 `MONGODB_HOST=mongodb`、`RABBITMQ_HOST=rabbitmq`、`SPRING_DATA_REDIS_HOST=redis`。
+按下列顺序验收（**建议逐条勾选**）。注意：**在 rs0 初始化前**，Raidar 可能“容器在跑但业务报错”，因此务必先完成第四步。
+
+### 6.1 Dokploy 界面快速验收（无需进容器）
+
+1. 在 Dokploy 的该 Compose 栈里，确认 4 个服务都为 **Running**：`mongodb`、`rabbitmq`、`redis`、`raidar`。
+2. 打开 `raidar` 的 **Logs**，观察是否存在明显的连接失败（常见关键字：`replicaSet` / `rs0` / `MongoTimeoutException` / `RabbitMQ` / `Redis`）。
+
+### 6.2 初始化 rs0 后的数据库验收（在 mongodb 容器终端）
+
+在 `mongodb` 容器终端执行：
+
+```bash
+mongosh --eval "rs.status().ok"
+```
+
+- 若输出 `1`：说明 rs0 已就绪。
+- 若报 “not yet initialized”：按第四步执行 `rs.initiate()`，然后再执行一次上述命令确认。
+
+完成后，**重启 `raidar` 容器**（或在 Dokploy 对 `raidar` 执行 Restart），确保它重新连接到已初始化的副本集。
+
+### 6.3 RabbitMQ / Redis 验收（可选但建议）
+
+- **RabbitMQ 管理台**：在浏览器打开 `http://<VM私网IP>:15672`，用 `guest/guest` 登录（本 compose 默认）。
+- **Redis PONG**：在 `redis` 容器终端执行 `redis-cli ping`，应返回 `PONG`。
+
+### 6.4 Raidar API / Swagger 验收
+
+在浏览器打开：
+
+- `http://<VM私网IP>:8080/swagger-ui/index.html`
+
+能打开并能正常加载接口文档，即为通过的强信号；若打不开：
+
+- 先看 `raidar` 容器 Logs 是否仍在报 Mongo rs0 未就绪或连接失败；
+- 再确认 Dokploy/compose 是否对外暴露了 8080（compose 中为 `8080:8080`）。
 
 ---
 
