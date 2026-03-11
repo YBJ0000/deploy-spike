@@ -3,15 +3,49 @@
 用于在本地从 `medical-server` 构建 Docker 镜像并推送到你自己的 Docker Hub，供 Dokploy 拉取。  
 Docker Hub 用户名示例：`yangbingjia1206`，请按需替换。
 
+**两种构建方式**：**方案 A** 使用 Spring Boot 的 `bootBuildImage`（Cloud Native Buildpacks）；**方案 B** 使用 `medical-server/app` 下的 **Dockerfile**（`docker build`）。  
+若方案 A 在 **EXPORTING** 阶段反复报错 `content digest ... not found`（Docker Desktop + containerd 的已知问题），请**改用方案 B**，无需关闭 containerd 即可成功构建并推送。
+
 ---
 
 ## 前置条件
 
 - **Docker Desktop（或 Docker 引擎）已启动**，终端可执行 `docker info`
-- **Java 21**（与 medical-server 一致）
-- 已克隆 **medical-server** 仓库，能进入 `medical-server/app` 目录
+- 已克隆 **medical-server** 仓库，能进入 `medical-server/app` 目录  
+  （方案 A 还需本机 **Java 21**；方案 B 由镜像内 JDK 构建，本机可不装 Java）
 
 ---
+
+# 方案 B：Dockerfile 构建（推荐：当 bootBuildImage 反复在 EXPORTING 失败时）
+
+不经过 Buildpacks，直接 `docker build`，可规避「content digest not found」等导出问题。
+
+### 步骤 B1：在 medical-server/app 下构建镜像
+
+```bash
+cd /path/to/medical-server/app
+docker build --platform linux/amd64 -t yangbingjia1206/raidar:server-latest .
+```
+
+- 首次构建会拉取 `eclipse-temurin` 镜像并执行 Gradle 编译，耗时可能数分钟。
+- 若需带测试构建，可先在本机执行 `./gradlew test` 通过后，再使用当前 Dockerfile（默认 `-x test` 以加快镜像构建）。
+
+### 步骤 B2：登录并推送
+
+```bash
+docker login
+docker push yangbingjia1206/raidar:server-latest
+```
+
+### 步骤 B3：修改 Compose 并重新部署
+
+与下方「步骤 5」相同：将 compose 中 raidar 的 `image:` 改为 `yangbingjia1206/raidar:server-latest`，在 Dokploy 中重新 Deploy。
+
+---
+
+# 方案 A：bootBuildImage（Buildpacks）构建
+
+若你希望继续使用 Spring Boot 官方 Buildpacks 构建，可按以下步骤；若在 **EXPORTING** 阶段反复失败，请改用上方**方案 B**。
 
 ## 步骤 1：设置 Docker Hub 用户名（必做）
 
@@ -81,7 +115,7 @@ ERROR: failed to export: saving image: failed to fetch base layers: ... unable t
    ```
    然后再次执行 `./gradlew bootBuildImage ...`。
 
-完成上述任一修复后，从步骤 2 重新构建即可。
+4. **改用方案 B（Dockerfile 构建）**：若上述 1–3 仍无法解决（尤其在 Docker Desktop 使用 containerd 存储时），请直接使用本文档开头的 **方案 B**：在 `medical-server/app` 下执行 `docker build --platform linux/amd64 -t <用户名>/raidar:server-latest .`，再 `docker push`。Dockerfile 不经过 Buildpacks 导出，可规避该问题。
 
 ### 步骤 2 平台不匹配：`Requested platform 'linux/amd64' but got 'linux/arm64'`
 
@@ -147,12 +181,12 @@ docker push yangbingjia1206/raidar:server-latest
 
 | 现象 | 处理 |
 |------|------|
-| `'username' must not be null` | 执行 `export DOCKER_HUB_USERNAME=yangbingjia1206` 后再执行步骤 2。 |
+| 方案 A 步骤 2 在 **EXPORTING** 反复报错 `content digest ... not found` | **推荐**：改用 **方案 B（Dockerfile 构建）**，见文档开头。或尝试关闭 Docker containerd 存储、预拉 amd64 镜像、清理 pack 缓存后重试。 |
+| `'username' must not be null` | 执行 `export DOCKER_HUB_USERNAME=yangbingjia1206` 后再执行方案 A 步骤 2。 |
 | `Connection to the Docker daemon ... refused` | 启动 Docker Desktop 或本机 Docker 服务。 |
-| 步骤 2 在 **EXPORTING** 报错 `content digest ... not found` | 见上文「步骤 2 导出失败：content digest ... not found」：预拉 run 镜像、关闭 Docker containerd 存储或清理后重试。 |
-| 步骤 2 报错 `Image platform mismatch ... linux/amd64 ... but got linux/arm64` | 见上文「步骤 2 平台不匹配」：用 `docker pull --platform linux/amd64 ...` 预拉，或删掉本地 run/builder 镜像后重新构建。 |
-| `pull access denied` / `denied: requested access to the resource is denied` | 先执行 `docker login`，再执行步骤 4。 |
-| Gradle 构建失败（编译/测试） | 确认 JDK 21、网络正常，参考 `medical-server/app/README.md`。 |
+| 方案 A 步骤 2 报错 `Image platform mismatch ... linux/amd64 ... but got linux/arm64` | 见上文「步骤 2 平台不匹配」：用 `docker pull --platform linux/amd64 ...` 预拉，或删掉本地 run/builder 镜像后重新构建。 |
+| `pull access denied` / `denied: requested access to the resource is denied` | 先执行 `docker login`，再执行推送。 |
+| Gradle 构建失败（编译/测试） | 确认 JDK 21、网络正常，参考 `medical-server/app/README.md`。方案 B 在镜像内构建，可不装本机 Java。 |
 
 ---
 
