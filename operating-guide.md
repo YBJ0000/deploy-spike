@@ -170,13 +170,20 @@ Dokploy 的 Provider 若选 **GitHub**，则「Select repository」只会列出*
 
 Compose 部署完成后，Mongo 已以 `--replSet rs0` 启动，但尚未执行 `rs.initiate()`，应用会报错直到副本集初始化完成。
 
-1. 在 Dokploy 中打开 **mongodb 容器**的**终端**（该 Compose 栈下的 mongodb 服务 → Terminal / Execute 等）。
-2. 在容器内执行：
+1. 在**你本机终端**使用 `mongosh` 直接连接 Dokploy VM 上的 Mongo（Compose 已将 27017 暴露出来）。连接字符串示例：
    ```bash
-   mongosh
+   mongosh "mongodb://<Dokploy VM 私网 IP>:27017"
    rs.initiate()
    ```
-3. 退出 `mongosh` 后，重启 **raidar** 服务（若未自动重连），使应用连上已初始化的 rs0。
+   - `<Dokploy VM 私网 IP>` 一般形如 `192.168.64.x`，可从：
+     - `multipass list` 输出中的 IPv4，或
+     - 访问 Dokploy 面板时浏览器地址栏里的 IP（例如 `http://192.168.64.4:3000`，则 Mongo 为 `192.168.64.4:27017`）。
+2. `rs.initiate()` 返回成功后，可以用下述命令快速自检：
+   ```bash
+   mongosh --eval "rs.status().ok"
+   ```
+   若输出为 `1`，说明 rs0 已正常初始化。
+3. 完成初始化后，回到 Dokploy 中**重启 `raidar` 服务**（若未自动重连），使应用连上已初始化的 rs0。
 
 ---
 
