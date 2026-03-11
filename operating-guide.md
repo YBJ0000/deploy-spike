@@ -183,7 +183,7 @@ Compose 部署完成后，Mongo 已以 `--replSet rs0` 启动，但尚未执行 
    mongosh --eval "rs.status().ok"
    ```
    若输出为 `1`，说明 rs0 已正常初始化。
-3. 完成初始化后，回到 Dokploy 中**重启 `raidar` 服务**（若未自动重连），使应用连上已初始化的 rs0。
+3. 完成初始化后，可以通过 Dokploy 中 `raidar` 的 **Logs** 观察 Mongo 连接情况：若日志中已出现「Discovered replica set primary ... setName='rs0'」等字样，说明应用已经识别并连上 rs0，此时**可以不必额外重启 `raidar` 容器**；若日志仍反复出现 `REPLICA_SET_GHOST` / `MongoTimeoutException`，再考虑在 Dokploy 中对 `raidar` 执行一次 Restart。
 
 ---
 
@@ -229,7 +229,7 @@ mongosh --eval "rs.status().ok"
 - 若输出 `1`：说明 rs0 已就绪。
 - 若报 “not yet initialized”：按第四步执行 `rs.initiate()`，然后再执行一次上述命令确认。
 
-完成后，**重启 `raidar` 容器**（或在 Dokploy 对 `raidar` 执行 Restart），确保它重新连接到已初始化的副本集。
+完成后，可在 Dokploy 的 `raidar` 日志中确认：若已经发现并连接到 rs0 的 primary（如日志包含「Discovered replica set primary ... setName='rs0'」），则无需再次重启 `raidar`；只有在仍反复出现 `REPLICA_SET_GHOST` / `MongoTimeoutException` 等连接异常时，才需要在 Dokploy 中对 `raidar` 执行 Restart 以重新建立连接。
 
 ### 6.3 RabbitMQ / Redis 验收（可选但建议）
 

@@ -57,6 +57,8 @@
 | 2026-03-11 | Dokploy VM 在高负载下多次崩溃 | 失败 | `multipass stop/start dokploy-vm` 后，`http://192.168.64.3:3000` 可恢复访问；在 Dokploy 中重新 Deploy medical-server 的 Compose，所有容器短暂 running，约几十秒–1 分钟后 Dokploy 面板再次无法访问，`multipass shell dokploy-vm` 报 `Timeout connecting to 192.168.64.3`。结论：推断为 Multipass VM 本身资源不足/系统不稳定，在 Mongo + RabbitMQ + Redis + Raidar 同时运行时容易卡死。下一步：考虑删除当前 `dokploy-vm` 并按文档重建一台资源更高的 VM（如 4G RAM / 40G 磁盘），再按现有流程重新安装 Dokploy 与部署；同时在宿主机清理本地 Docker 镜像与缓存以释放磁盘空间。 |
 | 2026-03-11 | 试图用 Dokploy「Open Terminal」在容器内初始化 rs0 | 失败 | 点击 Compose 栈上的 **Open Terminal** 进入的 shell 中没有 `mongod` 进程，也找不到 `mongosh`/`mongo` 命令；说明该终端并非附着在 `mongodb` 服务容器上，而是某个单独的工具容器。结论：不依赖 Dokploy 的内置终端去连 Mongo，而改用宿主机 `mongosh` 直连暴露出来的 27017 端口更简单可靠。 |
 | 2026-03-11 | 从宿主机通过 mongosh 连接 Dokploy VM 上 Mongo 并完成 rs0 初始化 | 成功 | 在本机执行 `mongosh "mongodb://192.168.64.4:27017"` 成功连接到 MongoDB 8.2.5，随后在 shell 中执行 `rs.initiate()`（返回 `ok: 1`）与 `rs.status().ok`（返回 `1`，提示符变为 `rs0 [direct: primary]`），确认 Dokploy VM 上的单节点副本集 rs0 已成功初始化，可供 Raidar 作为 primary 写入。 |
+| 2026-03-11 | Swagger / RabbitMQ 验收 | 成功 | 在浏览器访问 `http://192.168.64.4:8080/swagger-ui/index.html` 正常打开 Swagger UI；访问 `http://192.168.64.4:15672/` 使用 `guest/guest` 登录成功并看到 RabbitMQ Management Dashboard，说明 Raidar HTTP 与 RabbitMQ 管理端口均已对外可用。 |
+| 2026-03-11 | Redis 验收（redis-cli 不可用） | 部分成功 | 在当前 Dokploy「Open Terminal」环境中执行 `redis-cli ping` 提示 `command not found`，推断该终端仍不是挂在 `redis` 服务容器上，或镜像中未包含 redis-cli。后续计划：要么从 Dokploy 针对 `redis` 服务打开容器终端执行 `redis-cli ping`，要么在本机安装 redis-cli 后通过 `redis-cli -h 192.168.64.4 -p 6379 ping` 验证。 |
 
 ---
 
