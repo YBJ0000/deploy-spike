@@ -117,7 +117,7 @@
    填完后点击 **Create**。
 3. **第二步：在后续界面填写 YAML**。创建完成后会进入该 Compose 的配置页，此处才有 **docker-compose 的 YAML 编辑区**。  
    直接将 [configs/docker-compose-medical-server.yml](./configs/docker-compose-medical-server.yml) **全文粘贴**进去，然后点 **Save** → **Deploy** 即可。  
-   - 该文件已包含 Mongo（`rs0`）、RabbitMQ、Redis、Raidar 的完整定义；你通常只需要确认 `raidar.image` 是你能拉取的镜像（当前为 `yangbingjia1206/raidar:server-20260311-1`）。
+   - 该文件已包含 Mongo（`rs0`）、RabbitMQ、Redis、Raidar 的完整定义；你通常只需要确认 `raidar.image` 是你能拉取的镜像（当前为 `yangbingjia1206/raidar:${RAIDAR_TAG}`，tag 由环境变量提供）。
 
 ### Deploy 时拉取的是什么？需要本地构建或推送到 Docker Hub 吗？
 
@@ -207,6 +207,7 @@ Compose 部署完成后，Mongo 已以 `--replSet rs0` 启动，但尚未执行 
    - 先下载 logs（或直接在 Logs 页查看最后 50 行）  
    - 若看到 `GridFsTemplate ... expected single matching bean but found 2`，这是已知启动阻塞：需要用修复后的源码重新构建并推送镜像，然后让 Dokploy 重新拉取（建议用 buildx 推 multi-arch，并考虑换 tag 避免缓存）。
    - 若看到 `ConversionService ... expected single matching bean but found 2`（例如 `templateFormattingConversionService,mvcConversionService`），同样属于启动阻塞：需要在 `ThymeleafService` 的注入点使用 `@Qualifier("templateFormattingConversionService")`（已在 `medical-server` 修复并提交）。
+   - 若看到 `invalid reference format` 且日志中尝试拉取 `yangbingjia1206/raidar:`（tag 为空），通常是因为 Dokploy 环境中未设置 `RAIDAR_TAG`；请在 Dokploy 的 Environment Settings 中增加 `RAIDAR_TAG=<与你本地 .env 相同的值>`，再重新 Deploy。
    - 以上两类问题的统一排查入口见 [findings/raidar-startup-failures.md](./findings/raidar-startup-failures.md)。
 
 ### 6.2 初始化 rs0 后的数据库验收（在 mongodb 容器终端）

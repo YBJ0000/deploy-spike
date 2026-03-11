@@ -7,7 +7,9 @@ Docker Hub 用户名示例：`yangbingjia1206`，请按需替换。
 若方案 A 在 **EXPORTING** 阶段反复报错 `content digest ... not found`（Docker Desktop + containerd 的已知问题），请**改用方案 B**，无需关闭 containerd 即可成功构建并推送。  
 **方案 B 已在实际环境中验证**：在将 `medical-server/app/build.gradle` 恢复为与 main 一致（无 bootBuildImage 专用配置）后，使用 Dockerfile 构建并推送镜像成功。
 
-**当前进度**：方案 B（Dockerfile）已可稳定构建并推送镜像；Compose 已切换为**使用 `.env` 中的 RAIDAR_TAG 的带 tag 镜像**（例如 `yangbingjia1206/raidar:${RAIDAR_TAG}`），统一由 `.env` 控制。  
+**当前进度**：方案 B（Dockerfile）已可稳定构建并推送镜像；Compose 已切换为**使用 RAIDAR_TAG 的带 tag 镜像**（例如 `yangbingjia1206/raidar:${RAIDAR_TAG}`）：  
+- 本地构建时通过 `deploy-spike/.env` + `source .env` 统一控制 `$RAIDAR_TAG`；  
+- 在 Dokploy 部署时，则需要在 **Dokploy 界面中配置环境变量 `RAIDAR_TAG`**，Dokploy 并不会自动读取仓库里的 `.env`。  
 **注意**：若 Dokploy 运行在 **linux/arm64**（例如 Mac 的 Multipass VM 常为 arm64），而你推送的是 **linux/amd64** 镜像，Dokploy Deploy 时会报：`no matching manifest for linux/arm64/v8`。此时需要按下方「为 arm64 / 多架构推送镜像」重新构建并推送 **arm64 或 multi-arch** 镜像后再 Deploy。  
 后续在 Dokploy 上仍需完成：第四步初始化 MongoDB 副本集（rs0）、可选数据导入、验收 Swagger 与依赖服务。见 [operating-guide.md](../operating-guide.md)。
 
@@ -25,17 +27,20 @@ Docker Hub 用户名示例：`yangbingjia1206`，请按需替换。
 
 不经过 Buildpacks，直接 `docker build`，可规避「content digest not found」等导出问题。在 Mac + Docker Desktop、`build.gradle` 与 main 一致的前提下已成功构建并推送。
 
-### 步骤 B0：统一配置 RAIDAR_TAG（只改一处）
+### 步骤 B0：统一配置 RAIDAR_TAG（本地 + Dokploy）
 
-为避免同时改 `export RAIDAR_TAG=...` 和 compose 里的 tag，我们用 **docker-compose 的 `.env` 文件** 来统一管理：
+为避免同时改多处 tag，我们约定：
 
-1. 在 `deploy-spike/.env` 中设置（已提供示例）：
+1. **版本号唯一真源**：`deploy-spike/.env` 中的 `RAIDAR_TAG`（你只需在这里决定这次要用的 tag）。
+
+   在 `deploy-spike/.env` 中设置（已提供示例）：
 
    ```env
    RAIDAR_TAG=server-20260311-1
    ```
 
-   - 之后你只需要修改这一行（例如改成 `server-20260311-2`），**compose 与 Dokploy Deploy 都会用这个 tag**。
+   - 之后你只需要修改这一行（例如改成 `server-20260311-2`），**本地构建命令与 Dokploy 环境变量都应对齐到同一个值**。
+
 2. 在本地终端中加载 `.env`（这样 shell 里的构建命令也能用同一个 `$RAIDAR_TAG`）：
 
    ```bash
@@ -45,7 +50,18 @@ Docker Hub 用户名示例：`yangbingjia1206`，请按需替换。
    set +a
    ```
 
-   - 这一步不需要改任何文字，只是每次新开终端时执行一次，让 `$RAIDAR_TAG` 环境变量与 `.env` 同步。
+   - 这一步不需要改任何文字，只是每次新开终端时执行一次，让 **本地终端里的 `$RAIDAR_TAG` 与 `.env` 一致**。
+
+3. 在 **Dokploy 界面中设置 `RAIDAR_TAG` 环境变量**（关键）：
+
+   - 进入 Dokploy 中对应的 **Application / Compose**（例如 `medical-server`），打开 **Environment / Environment Settings**。
+   - 新增一条：
+
+     - **Key**：`RAIDAR_TAG`  
+     - **Value**：与你 `.env` 中一致的值，例如 `server-20260311-2`
+
+   - 保存后再次 Deploy。  
+   - 说明：Dokploy 在执行 `docker compose` 时 **不会自动读取仓库根目录的 `.env` 文件**，而是只认在界面上配置的 Environment 变量；如果不设置，`image: yangbingjia1206/raidar:${RAIDAR_TAG}` 会解析成 `yangbingjia1206/raidar:`，导致 `invalid reference format`，正是你遇到的错误。
 
 ### 步骤 B1：在 medical-server/app 下构建镜像
 
