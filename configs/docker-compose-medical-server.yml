@@ -1,0 +1,71 @@
+# medical-server (Raidar) 在 Dokploy 中整体部署用的 docker-compose 草案
+# 参考：medical-server/app/README.md（镜像、依赖）、application.yml（MONGODB_HOST, RABBITMQ_*, Redis session）
+# 服务名 mongodb 必须保留，以便 rs0 的 hostname 正确；部署后需在 Mongo 容器内执行 rs.initiate()
+
+services:
+  mongodb:
+    image: mongo:8
+    container_name: mongodb
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    # 健康检查可选，便于 Dokploy 判断就绪
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  raidar:
+    image: ghoshorn/raidar:server-latest
+    container_name: raidar
+    ports:
+      - "8080:8080"
+    environment:
+      MONGODB_HOST: mongodb
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
+      SPRING_DATA_REDIS_HOST: redis
+      # 若应用读 replica-set-name，application.yml 已写 rs0；连 Mongo 时需带 ?replicaSet=rs0 可在 URI 里配
+      # 可选：SPRING_PROFILES_ACTIVE=dev
+    depends_on:
+      mongodb:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+      redis:
+        condition: service_started
+    deploy:
+      resources:
+        limits:
+          memory: 1024M
+
+volumes:
+  mongodb_data:
+  rabbitmq_data:
+  redis_data:

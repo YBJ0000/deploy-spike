@@ -12,5 +12,6 @@
 | [journal/2026-03-10-session-1.md](./journal/2026-03-10-session-1.md) | 按会话记录的具体操作与结论 |
 | [findings/self-hosted-vs-cloud.md](./findings/self-hosted-vs-cloud.md) | 自托管 vs Cloud、与 issue #157 符合性、Mac 用 Multipass 获得 Linux |
 | [docs/mac-multipass-dokploy.md](./docs/mac-multipass-dokploy.md) | Mac + Multipass 安装 Dokploy 逐步命令清单（含排错记录） |
+| [configs/docker-compose-medical-server.yml](./configs/docker-compose-medical-server.yml) | medical-server 栈的 Compose 草案（Mongo rs0 + RabbitMQ + Redis + Raidar） |
 
-后续将补充：`findings/` 内推荐方案与风险、`configs/`（环境变量与 compose 草案）、`evidence/`（截图与错误片段）。
+后续将补充：`findings/` 内推荐方案与风险、`configs/` 内环境变量说明、`evidence/`（截图与错误片段）。
