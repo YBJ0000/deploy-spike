@@ -143,6 +143,8 @@ http://<上一步的 IPv4>:3000
 - **启动 VM**：`multipass start dokploy-vm`
 - **删除 VM**（会删除其中所有数据）：`multipass delete dokploy-vm && multipass purge`
 
+**说明**：自托管 Dokploy 的账号、项目等数据都存在本 VM 内的 PostgreSQL 中，与 Dokploy 官方无关。删除该 VM 后，这些账号和数据会一并丢失；若有需要请先备份再删。
+
 Dokploy 的 Web 终端：登录后 **Settings → Servers → 对应服务器 → Enter Terminal**，无需每次 SSH 或 `multipass shell`。
 
 ---

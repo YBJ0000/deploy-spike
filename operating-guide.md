@@ -11,9 +11,17 @@
 - **自托管 Dokploy 已安装成功**（在 Mac 的 Multipass VM `dokploy-vm` 内）。
 - **正确访问方式（本机 Multipass）**：使用 `multipass list` 看到的 VM 私网 IP（`192.168.64.x`）访问 `http://<VM私网IP>:3000`。  
   安装脚本打印的 `http://<公网/出口IP>:3000` 在本机场景可能不可用（未做端口映射）。
-- **你当前下一步**：在浏览器打开 `http://<VM私网IP>:3000/register`（或直接打开 `http://<VM私网IP>:3000` 跳转到注册页）创建管理员账号。
+- **已完成**：2.1 初始化（创建管理员账号）、2.2 登录并创建项目（项目名 `medical-server`，当前 0 services）。
+- **你当前下一步**：按 **第三步** 在该项目中添加依赖服务（RabbitMQ、Redis），再 **第四步** 部署 MongoDB（副本集 rs0）。
 
 （更详细的 VM/IP 说明与排错见 [docs/mac-multipass-dokploy.md](./docs/mac-multipass-dokploy.md)。）
+
+### 账号与数据存在哪里？销毁 VM 会怎样？
+
+自托管版 Dokploy 的**账号、密码、项目、部署配置等**都保存在**你安装 Dokploy 的那台机器上**（安装脚本会在该机上部署 PostgreSQL 和 Redis，数据就存在那里），**不会**同步到 Dokploy 官方的任何数据库或云端。
+
+- **本机 Multipass VM**：账号和数据都在 VM 内的 PostgreSQL 里；只有你这台 Mac 能访问该实例。
+- **销毁该 VM 后**：该实例上的所有账号和数据都会丢失；之前创建的管理员账号也就“不存在了”（因为整台机器没了）。若需要保留，应在删除 VM 前做好数据库或卷的备份。
 
 ---
 
