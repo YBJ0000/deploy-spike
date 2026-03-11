@@ -97,49 +97,7 @@
 5. **第四步：设置环境变量**。在 **General → Environment** 中设置环境变量，例如 `RAIDAR_TAG=server-20260311-2` ，确保镜像 tag 正确。
 6. **第五步：点击 Deploy**。确保填写了正确的仓库和 compose 路径，然后点击 **Deploy** 按钮，等待部署完成。
 
-### Deploy 时拉取的是什么？需要本地构建或推送到 Docker Hub 吗？
-
-当前这份 compose（[configs/docker-compose-medical-server.yml](./configs/docker-compose-medical-server.yml)）没有 `build:`，只会按 `image:` 拉取镜像：
-
-- Dokploy 点击 **Deploy** 后，会先从你选的 GitHub 仓库（如 deploy-spike）拉取 **compose 文件本身**（即该 YAML）。
-- 然后根据 YAML 里的 **`image:`** 在运行 Dokploy 的机器上执行 `docker pull`：拉取 `mongo:8`、`rabbitmq:3-management`、`redis:7-alpine`、`yangbingjia1206/raidar:server-latest` 等镜像，再启动容器。
-
-因此：deploy-spike 不需要存 medical-server 的代码；你只需要确保 `raidar.image` 指向一个 Dokploy 机器可拉取的镜像即可。  
-- **若镜像是 public**：不需要在 Dokploy 配 Docker Registry，直接 Deploy 即可拉取。  
-- **若镜像是 private**：需要在 Dokploy 的 **Settings → Docker Registry** 中添加 Docker Hub（`docker.io` + username + password/token），否则会 `pull access denied`。  
- - **若 Dokploy 服务器是 arm64（常见于 Mac 的 Multipass VM）**：你推到 Docker Hub 的镜像也必须包含 **linux/arm64**，否则会报 `no matching manifest for linux/arm64/v8`。推荐推送 multi-arch（amd64+arm64）同一 tag，见 [docs/build-and-push-raidar-image.md](./docs/build-and-push-raidar-image.md) 的「为 arm64 / 多架构推送镜像」。
-本次已采用 **方案 3**：本地构建并推送 `yangbingjia1206/raidar:server-latest`，compose 已切换到该镜像；构建/推送步骤见 [docs/build-and-push-raidar-image.md](./docs/build-and-push-raidar-image.md)。
-
-### Raidar 镜像拉取失败（ghoshorn/raidar 不可用）时怎么办？
-
-若 Deploy 报错：`pull access denied for ghoshorn/raidar, repository does not exist or may require 'docker login'`，说明当前无法使用该镜像（私有且无权限，或该仓库已不可用）。此时需**换用其他可拉取的 Raidar 镜像**。详见 [findings/raidar-image-source.md](./findings/raidar-image-source.md)，这里仅摘要：
-
-- **方案 3（推荐，可完全自助）**：在本地从 medical-server 源码执行 `./gradlew bootBuildImage --imageName=<你的DockerHub用户名>/raidar:server-latest`，再 `docker push` 到你自己的 Docker Hub；把 compose 里 raidar 的 `image:` 改为该镜像；若设为私有，在 Dokploy 的 Registries 中配置你的 Docker Hub。**不需要**公司 GitHub 管理员或 Fork——Docker Hub 与 GitHub 是两套账号，你只要有源码即可构建并推到你自己的 Hub。**逐步命令**见 [docs/build-and-push-raidar-image.md](./docs/build-and-push-raidar-image.md)。
-- **方案 2**：若组织开放 Fork，可把 medical-server fork 到个人账号，再在 Dokploy 用 Application 从 fork 构建，或由 fork 的 CI 构建并推送镜像，compose 引用该镜像。
-- **方案 1**：由公司组织管理员在 GitHub 安装 Dokploy 的 GitHub App，在 Dokploy 从官方 repo 构建或使用公司推送的镜像并配置 Registry。
-
-修改 compose 后需将变更推送到 deploy-spike（或更新 Raw），再在 Dokploy 重新 Deploy。
-
-### Select repository 里没有 medical-server（组织私有库）时怎么办？
-
-Dokploy 的 Provider 若选 **GitHub**，则「Select repository」只会列出**当前已连接 GitHub 账户有权限**的仓库。若 medical-server 在公司 **GitHub 组织（Organization）** 下且为 **private**，个人账号连接后**不会**在列表里看到该 repo。
-
-**重要**：Compose 文件里只用到了**公开镜像**（mongo、rabbitmq、redis、ghoshorn/raidar:server-latest），**不必**从 medical-server 仓库取 compose；只要有一份 YAML 即可，来源可以是任意你有权限的 repo、或 Raw 粘贴（若 Dokploy 支持）。
-
-可选做法（任选其一即可）：
-
-| 方案 | 做法 | 说明 |
-|------|------|------|
-| **A. 用你已有权限的仓库** | 把 `configs/docker-compose-medical-server.yml` 放到你**个人 GitHub** 下某个 repo（例如 **deploy-spike**，若已 push 到 GitHub）。在 Dokploy 的 Provider 选 GitHub，Repository 选该 repo，Branch 选对应分支，**Compose Path** 填 `configs/docker-compose-medical-server.yml`（或把文件放到仓库根目录后填 `./docker-compose.yml`）。 | 无需 org 授权或 fork，立即可用。 |
-| **B. 用 Raw 来源** | Provider 选 **Raw**（若有该选项），按界面说明粘贴或填写 compose 内容/URL。 | 不依赖 GitHub 仓库，需确认当前 Dokploy 版本是否支持 Raw 及格式。 |
-| **C. 组织安装 GitHub App** | 请公司 **GitHub 组织管理员** 在 GitHub 中安装/授权当前 Dokploy 实例使用的 **GitHub App**，并勾选可访问的仓库（含 medical-server）。安装后，若 Dokploy 支持多账户/多安装，在「Github Account」中选该组织，即可在 Repository 里看到 medical-server。 | 需要组织侧权限与管理员操作。 |
-| **D. Fork 到个人账号** | 若组织允许 Fork：在 GitHub 上把 medical-server fork 到你个人账号，在 fork 里添加或保留 `docker-compose.yml`（可从 deploy-spike 的 `configs/docker-compose-medical-server.yml` 复制），在 Dokploy 里选该 fork 为 Repository，Compose Path 指向该文件。 | Fork 后你个人账号可见该 repo，Dokploy 即可列出；需管理员先开放 fork。 |
-
-**建议优先尝试 A**：若 deploy-spike 已在你的 GitHub 上，直接选该 repo 并设置 Compose Path 为 `configs/docker-compose-medical-server.yml`，保存后即可在该 Compose 的配置页点 **Deploy** 进行部署（无需动 medical-server 或组织权限）。部署时 Dokploy 会从 deploy-spike 拉取**该 YAML 文件**，再按 YAML 中的 `image:` 从 Docker Hub 等拉取镜像并启动容器；见下方「Deploy 时拉取的是什么？」。
-
-### 若 Dokploy 的 Compose 不支持多服务或格式有差异
-
-可在 journal 中记录实际界面与限制；备选方案为：用 **Application** 单独部署 Raidar，用 **Database** 只加 Redis，**RabbitMQ 则需用 Compose 单独建一个栈**（只含 rabbitmq 服务）或改用其他方式。仍建议优先用 Compose 整体部署。
+**Deploy 时拉取的是什么、镜像拉取失败、Select repository 没有 medical-server、Compose 不支持多服务等**说明见 **[docs/faq.md](./docs/faq.md)** 中对应小节。
 
 ---
 
