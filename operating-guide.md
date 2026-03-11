@@ -115,9 +115,10 @@
    - **Compose Type**：选 **Docker Compose**。  
    - **Description**：可选，如「Mongo + RabbitMQ + Redis + Raidar 整体栈」。  
    填完后点击 **Create**。
-3. **第二步：在后续界面填写 YAML**。创建完成后会进入该 Compose 的配置页，此处才有 **docker-compose 的 YAML 编辑区**。  
-   直接将 [configs/docker-compose-medical-server.yml](./configs/docker-compose-medical-server.yml) **全文粘贴**进去，然后点 **Save** → **Deploy** 即可。  
-   - 该文件已包含 Mongo（`rs0`）、RabbitMQ、Redis、Raidar 的完整定义；你通常只需要确认 `raidar.image` 是你能拉取的镜像（当前为 `yangbingjia1206/raidar:${RAIDAR_TAG}`，tag 由环境变量提供）。
+3. **第二步：在 Settings 里连接 GitHub 账户并授权 GitHub App**。先在 Dokploy 顶部/侧边栏进入 **Settings → Git Providers / Github**，连接你的 GitHub 账号并按提示安装/授权 Dokploy 的 GitHub App（选择允许访问包含 compose 文件的仓库）。  
+4. **第三步：回到项目 General 界面，选择仓库与 compose 路径**。回到该项目的 **General → Deploy Settings**，在 Provider 选择 **GitHub**，选中刚授权可见的仓库和分支；此时 **repo 中已有的 `.yml` / compose 文件会直接被使用**，在 **Compose Path** 中填写（或下拉选择）该文件路径即可，例如 `configs/docker-compose-medical-server.yml` ，里面会记录Docker Hub的镜像地址。
+5. **第四步：设置环境变量**。在 **General → Environment** 中设置环境变量，例如 `RAIDAR_TAG=server-20260311-2` ，确保镜像 tag 正确。
+6. **第五步：点击 Deploy**。确保填写了正确的仓库和 compose 路径，然后点击 **Deploy** 按钮，等待部署完成。
 
 ### Deploy 时拉取的是什么？需要本地构建或推送到 Docker Hub 吗？
 
