@@ -127,6 +127,23 @@
    - 应用已配置 `replica-set-name: rs0`、`database: raidar-master`（见 medical-server `application.yml`），只需保证 Mongo 服务名为 `mongodb` 并在部署后执行一次 `rs.initiate()`。  
    在该配置页保存后点击 **Deploy**，等待镜像拉取与容器启动。
 
+### Select repository 里没有 medical-server（组织私有库）时怎么办？
+
+Dokploy 的 Provider 若选 **GitHub**，则「Select repository」只会列出**当前已连接 GitHub 账户有权限**的仓库。若 medical-server 在公司 **GitHub 组织（Organization）** 下且为 **private**，个人账号连接后**不会**在列表里看到该 repo。
+
+**重要**：Compose 文件里只用到了**公开镜像**（mongo、rabbitmq、redis、ghoshorn/raidar:server-latest），**不必**从 medical-server 仓库取 compose；只要有一份 YAML 即可，来源可以是任意你有权限的 repo、或 Raw 粘贴（若 Dokploy 支持）。
+
+可选做法（任选其一即可）：
+
+| 方案 | 做法 | 说明 |
+|------|------|------|
+| **A. 用你已有权限的仓库** | 把 `configs/docker-compose-medical-server.yml` 放到你**个人 GitHub** 下某个 repo（例如 **deploy-spike**，若已 push 到 GitHub）。在 Dokploy 的 Provider 选 GitHub，Repository 选该 repo，Branch 选对应分支，**Compose Path** 填 `configs/docker-compose-medical-server.yml`（或把文件放到仓库根目录后填 `./docker-compose.yml`）。 | 无需 org 授权或 fork，立即可用。 |
+| **B. 用 Raw 来源** | Provider 选 **Raw**（若有该选项），按界面说明粘贴或填写 compose 内容/URL。 | 不依赖 GitHub 仓库，需确认当前 Dokploy 版本是否支持 Raw 及格式。 |
+| **C. 组织安装 GitHub App** | 请公司 **GitHub 组织管理员** 在 GitHub 中安装/授权当前 Dokploy 实例使用的 **GitHub App**，并勾选可访问的仓库（含 medical-server）。安装后，若 Dokploy 支持多账户/多安装，在「Github Account」中选该组织，即可在 Repository 里看到 medical-server。 | 需要组织侧权限与管理员操作。 |
+| **D. Fork 到个人账号** | 若组织允许 Fork：在 GitHub 上把 medical-server fork 到你个人账号，在 fork 里添加或保留 `docker-compose.yml`（可从 deploy-spike 的 `configs/docker-compose-medical-server.yml` 复制），在 Dokploy 里选该 fork 为 Repository，Compose Path 指向该文件。 | Fork 后你个人账号可见该 repo，Dokploy 即可列出；需管理员先开放 fork。 |
+
+**建议优先尝试 A**：若 deploy-spike 已在你的 GitHub 上，直接选该 repo 并设置 Compose Path 为 `configs/docker-compose-medical-server.yml` 即可完成部署，无需动 medical-server 或组织权限。
+
 ### 若 Dokploy 的 Compose 不支持多服务或格式有差异
 
 可在 journal 中记录实际界面与限制；备选方案为：用 **Application** 单独部署 Raidar，用 **Database** 只加 Redis，**RabbitMQ 则需用 Compose 单独建一个栈**（只含 rabbitmq 服务）或改用其他方式。仍建议优先用 Compose 整体部署。
