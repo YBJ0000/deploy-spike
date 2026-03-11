@@ -11,8 +11,8 @@
 - **自托管 Dokploy 已安装成功**（在 Mac 的 Multipass VM `dokploy-vm` 内）。
 - **正确访问方式（本机 Multipass）**：使用 `multipass list` 看到的 VM 私网 IP（`192.168.64.x`）访问 `http://<VM私网IP>:3000`。  
   安装脚本打印的 `http://<公网/出口IP>:3000` 在本机场景可能不可用（未做端口映射）。
-- **已完成**：2.1 初始化（创建管理员账号）、2.2 登录并创建项目（项目名 `medical-server`，当前 0 services）。
-- **你当前下一步**：按 **第三步** 在该项目里用 **Compose** 整体部署（Mongo + RabbitMQ + Redis + Raidar），再初始化 Mongo 副本集并可选导入数据。
+- **已完成**：2.1 初始化（创建管理员账号）、2.2 登录并创建项目（项目名 `medical-server`）；**第三步** Compose 整体部署（Mongo + RabbitMQ + Redis + Raidar）；方案 3 步骤 4–5（镜像 `yangbingjia1206/raidar:server-latest` 已推送到 Docker Hub，Compose 已改为该镜像并在 Dokploy 中重新 Deploy）。
+- **你当前下一步**：按 **第四步** 在 Dokploy 中初始化 MongoDB 副本集（rs0），再可选做数据导入与验证。
 
 （更详细的 VM/IP 说明与排错见 [docs/mac-multipass-dokploy.md](./docs/mac-multipass-dokploy.md)。）
 

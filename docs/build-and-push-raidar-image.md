@@ -7,6 +7,8 @@ Docker Hub 用户名示例：`yangbingjia1206`，请按需替换。
 若方案 A 在 **EXPORTING** 阶段反复报错 `content digest ... not found`（Docker Desktop + containerd 的已知问题），请**改用方案 B**，无需关闭 containerd 即可成功构建并推送。  
 **方案 B 已在实际环境中验证**：在将 `medical-server/app/build.gradle` 恢复为与 main 一致（无 bootBuildImage 专用配置）后，使用 Dockerfile 构建并推送镜像成功。
 
+**当前进度（方案 B 已跑通）**：步骤 B1–B3（构建、登录推送、修改 Compose 并重新部署）均已完成；镜像 `yangbingjia1206/raidar:server-latest` 已推送到 Docker Hub，Compose 已改为该镜像并在 Dokploy 中完成重新 Deploy。后续在 Dokploy 上需完成：第四步初始化 MongoDB 副本集（rs0）、可选数据导入、验证服务与 Swagger。见 [operating-guide.md](../operating-guide.md)。
+
 ---
 
 ## 前置条件
