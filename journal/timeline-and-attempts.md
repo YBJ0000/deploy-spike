@@ -43,6 +43,8 @@
 | 2026-03-10 | 在 Multipass VM 内执行安装脚本安装 Dokploy | 成功 | 输出 “Congratulations, Dokploy is installed!”；进入自托管面板继续后续步骤 |
 | 2026-03-10 | Compose 部署时从 GitHub Select repository 选 medical-server | 不可见 | medical-server 为公司组织私有库，个人 GitHub 连接后看不到；改用个人有权限的 repo（如 deploy-spike）作 compose 来源，或 Raw/组织授权/Fork，见 operating-guide |
 | 2026-03-10 | Deploy Compose 拉取 ghoshorn/raidar:server-latest | 失败   | pull access denied；该镜像私有/不可用，需自建并推送或改用 Fork/公司构建，见 findings/raidar-image-source.md |
+| 2026-03-10 | 本地执行 bootBuildImage（方案 3）步骤 2 | 失败   | 构建到 EXPORTING 阶段报错：`content digest sha256:...: not found`；Docker 使用 containerd 存储时与 buildpacks 导出不兼容。处理：预拉 run 镜像、或在 Docker Desktop 关闭 containerd、或清理 pack 缓存后重试，见 docs/build-and-push-raidar-image.md |
+| 2026-03-10 | 按文档清理缓存后再次 bootBuildImage | 失败   | 清理后 `docker pull` 在 Mac arm64 上拉得 run/builder 为 **linux/arm64**，构建请求 **linux/amd64**，报错：`Image platform mismatch ... Requested platform 'linux/amd64' but got 'linux/arm64'`。处理：build.gradle 增加 `imagePlatform = "linux/amd64"`；预拉时使用 `docker pull --platform linux/amd64 ...`，见 docs/build-and-push-raidar-image.md |
 | （示例）   | 用内置 MongoDB     | 失败   | 无法开 rs0     |
 
 ---
