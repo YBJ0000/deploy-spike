@@ -56,7 +56,7 @@
 | 2026-03-11 | Raidar 容器启动失败（ConversionService 注入冲突） | 失败 | 下载 raidar logs（`raidar-20260311_081135.log.txt`）显示：`ThymeleafService required a single bean, but 2 were found: templateFormattingConversionService,mvcConversionService`；同时 Mongo 仍提示 `REPLICA_SET_GHOST`（rs0 未初始化）。结论：镜像已更新但应用又遇到新的 Spring 启动阻塞；需在 `ThymeleafService` 注入点加 `@Qualifier("templateFormattingConversionService")` 并重新构建推送；rs0 初始化仍是后续必做步骤。 |
 | 2026-03-11 | Dokploy VM 在高负载下多次崩溃 | 失败 | `multipass stop/start dokploy-vm` 后，`http://192.168.64.3:3000` 可恢复访问；在 Dokploy 中重新 Deploy medical-server 的 Compose，所有容器短暂 running，约几十秒–1 分钟后 Dokploy 面板再次无法访问，`multipass shell dokploy-vm` 报 `Timeout connecting to 192.168.64.3`。结论：推断为 Multipass VM 本身资源不足/系统不稳定，在 Mongo + RabbitMQ + Redis + Raidar 同时运行时容易卡死。下一步：考虑删除当前 `dokploy-vm` 并按文档重建一台资源更高的 VM（如 4G RAM / 40G 磁盘），再按现有流程重新安装 Dokploy 与部署；同时在宿主机清理本地 Docker 镜像与缓存以释放磁盘空间。 |
 | 2026-03-11 | 试图用 Dokploy「Open Terminal」在容器内初始化 rs0 | 失败 | 点击 Compose 栈上的 **Open Terminal** 进入的 shell 中没有 `mongod` 进程，也找不到 `mongosh`/`mongo` 命令；说明该终端并非附着在 `mongodb` 服务容器上，而是某个单独的工具容器。结论：不依赖 Dokploy 的内置终端去连 Mongo，而改用宿主机 `mongosh` 直连暴露出来的 27017 端口更简单可靠。 |
-| 2026-03-11 | 从宿主机通过 mongosh 连接 Dokploy VM 上 Mongo | 部分成功 | 在本机执行 `mongosh "mongodb://192.168.64.4:27017"` 可以成功连接到 MongoDB 8.2.5，证明 Compose 中 `ports: "27017:27017"` 生效，且 VM 私网 IP（如 `192.168.64.4`）可直接用于 Mongo 连接。后续仍需在该连接中执行 `rs.initiate()` 与 `rs.status().ok` 完成副本集初始化。 |
+| 2026-03-11 | 从宿主机通过 mongosh 连接 Dokploy VM 上 Mongo 并完成 rs0 初始化 | 成功 | 在本机执行 `mongosh "mongodb://192.168.64.4:27017"` 成功连接到 MongoDB 8.2.5，随后在 shell 中执行 `rs.initiate()`（返回 `ok: 1`）与 `rs.status().ok`（返回 `1`，提示符变为 `rs0 [direct: primary]`），确认 Dokploy VM 上的单节点副本集 rs0 已成功初始化，可供 Raidar 作为 primary 写入。 |
 
 ---
 
@@ -66,4 +66,4 @@
 
 - 推荐方式：自建 Raidar 镜像时优先使用 **方案 B（Dockerfile 构建）**，已在恢复 build.gradle 至 main 后验证通过；方案 A（bootBuildImage）在 Docker Desktop + containerd 下易在 EXPORTING 失败，可作备选。
 - 关键配置/文档：见 [docs/build-and-push-raidar-image.md](../docs/build-and-push-raidar-image.md)（含方案 A/B）、[configs/docker-compose-medical-server.yml](../configs/docker-compose-medical-server.yml)、medical-server/app/Dockerfile。medical-server 的 `app/build.gradle` 已恢复为与 main 一致，无需 bootBuildImage 专用配置。
-- 已知 blocker / 后续事项：部署到 Dokploy 后仍需完成 MongoDB rs0 初始化、可选数据导入与验证。
+- 已知 blocker / 后续事项：MongoDB rs0 已在 Dokploy VM 上完成初始化；后续主要关注 Raidar 启动/Swagger 验收，以及可选的初始数据导入与生产化加固（备份、监控等）。

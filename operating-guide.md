@@ -11,8 +11,8 @@
 - **自托管 Dokploy 已安装成功**（在 Mac 的 Multipass VM `dokploy-vm` 内）。
 - **正确访问方式（本机 Multipass）**：使用 `multipass list` 看到的 VM 私网 IP（`192.168.64.x`）访问 `http://<VM私网IP>:3000`。  
   安装脚本打印的 `http://<公网/出口IP>:3000` 在本机场景可能不可用（未做端口映射）。
-- **已完成**：2.1 初始化（创建管理员账号）、2.2 登录并创建项目（项目名 `medical-server`）；**第三步** Compose 整体部署（Mongo + RabbitMQ + Redis + Raidar）；方案 3（自建镜像 `yangbingjia1206/raidar:server-latest`）并完成 Deploy（日志出现 `Docker Compose Deployed: ✅`，容器均 Started）。
-- **你当前下一步**：先修复 `medical-server` 的启动阻塞（见下方 6.1 的“注入冲突”排错与 [findings/raidar-startup-failures.md](./findings/raidar-startup-failures.md)），用新 tag 重新 buildx+push+Deploy；随后按 **第四步** 初始化 MongoDB 副本集（rs0），再按 **第六步** 逐项验收（Swagger/依赖服务/日志）。
+- **已完成**：2.1 初始化（创建管理员账号）、2.2 登录并创建项目（项目名 `medical-server`）；**第三步** Compose 整体部署（Mongo + RabbitMQ + Redis + Raidar）；方案 3（自建镜像 `yangbingjia1206/raidar:server-latest`）并完成 Deploy（日志出现 `Docker Compose Deployed: ✅`，容器均 Started）；**第四步** MongoDB 副本集 rs0 初始化（通过本机 `mongosh "mongodb://<VM私网IP>:27017"` 执行 `rs.initiate()` + `rs.status().ok` 返回 1）。
+- **你当前下一步**：修复并验证 `medical-server`（Raidar）的启动阻塞与业务功能：按下方 6.1 的“注入冲突”排错与 [findings/raidar-startup-failures.md](./findings/raidar-startup-failures.md) 用新 tag 重新 buildx+push+Deploy，重启后检查日志不再有 `REPLICA_SET_GHOST` / `MongoTimeoutException`，再按 **第六步** 逐项验收（Swagger/依赖服务/日志）。
 
 （更详细的 VM/IP 说明与排错见 [docs/mac-multipass-dokploy.md](./docs/mac-multipass-dokploy.md)。）
 
