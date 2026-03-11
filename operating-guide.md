@@ -129,6 +129,7 @@
 因此：deploy-spike 不需要存 medical-server 的代码；你只需要确保 `raidar.image` 指向一个 Dokploy 机器可拉取的镜像即可。  
 - **若镜像是 public**：不需要在 Dokploy 配 Docker Registry，直接 Deploy 即可拉取。  
 - **若镜像是 private**：需要在 Dokploy 的 **Settings → Docker Registry** 中添加 Docker Hub（`docker.io` + username + password/token），否则会 `pull access denied`。  
+ - **若 Dokploy 服务器是 arm64（常见于 Mac 的 Multipass VM）**：你推到 Docker Hub 的镜像也必须包含 **linux/arm64**，否则会报 `no matching manifest for linux/arm64/v8`。推荐推送 multi-arch（amd64+arm64）同一 tag，见 [docs/build-and-push-raidar-image.md](./docs/build-and-push-raidar-image.md) 的「为 arm64 / 多架构推送镜像」。
 本次已采用 **方案 3**：本地构建并推送 `yangbingjia1206/raidar:server-latest`，compose 已切换到该镜像；构建/推送步骤见 [docs/build-and-push-raidar-image.md](./docs/build-and-push-raidar-image.md)。
 
 ### Raidar 镜像拉取失败（ghoshorn/raidar 不可用）时怎么办？

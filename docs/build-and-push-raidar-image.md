@@ -7,7 +7,9 @@ Docker Hub 用户名示例：`yangbingjia1206`，请按需替换。
 若方案 A 在 **EXPORTING** 阶段反复报错 `content digest ... not found`（Docker Desktop + containerd 的已知问题），请**改用方案 B**，无需关闭 containerd 即可成功构建并推送。  
 **方案 B 已在实际环境中验证**：在将 `medical-server/app/build.gradle` 恢复为与 main 一致（无 bootBuildImage 专用配置）后，使用 Dockerfile 构建并推送镜像成功。
 
-**当前进度（方案 B 已跑通）**：步骤 B1–B3（构建、登录推送、修改 Compose 并重新部署）均已完成；镜像 `yangbingjia1206/raidar:server-latest` 已推送到 Docker Hub，Compose 已改为该镜像并在 Dokploy 中完成重新 Deploy。后续在 Dokploy 上需完成：第四步初始化 MongoDB 副本集（rs0）、可选数据导入、验证服务与 Swagger。见 [operating-guide.md](../operating-guide.md)。
+**当前进度**：方案 B（Dockerfile）已可稳定构建并推送镜像；Compose 已切换为 `yangbingjia1206/raidar:server-latest`。  
+**但**：若 Dokploy 运行在 **linux/arm64**（例如 Mac 的 Multipass VM 常为 arm64），而你推送的是 **linux/amd64** 镜像，Dokploy Deploy 时会报：`no matching manifest for linux/arm64/v8`。此时需要按下方「为 arm64 / 多架构推送镜像」重新构建并推送 **arm64 或 multi-arch** 镜像后再 Deploy。  
+后续在 Dokploy 上仍需完成：第四步初始化 MongoDB 副本集（rs0）、可选数据导入、验证服务与 Swagger。见 [operating-guide.md](../operating-guide.md)。
 
 ---
 
@@ -32,6 +34,33 @@ docker build --platform linux/amd64 -t yangbingjia1206/raidar:server-latest .
 
 - 首次构建会拉取 `eclipse-temurin` 镜像并执行 Gradle 编译，耗时可能数分钟。
 - 若需带测试构建，可先在本机执行 `./gradlew test` 通过后，再使用当前 Dockerfile（默认 `-x test` 以加快镜像构建）。
+
+### 为 arm64 / 多架构（推荐）推送镜像（解决 Dokploy 报 `no matching manifest for linux/arm64/v8`）
+
+先确认 **Dokploy 服务器架构**（在安装 Dokploy 的 Linux 上执行其一即可）：
+
+```bash
+uname -m
+# 或
+docker info | grep Architecture
+```
+
+- 若输出 `aarch64` / `arm64`，说明 Dokploy 需要 **linux/arm64** 镜像。
+- 若输出 `x86_64`，说明 Dokploy 需要 **linux/amd64** 镜像。
+
+**推荐做法：推送 multi-arch（同时包含 amd64 + arm64）**，这样无论 Dokploy 在哪种机器上都能拉取同一个 tag：
+
+```bash
+cd /path/to/medical-server/app
+docker buildx create --use --name raidar-multiarch 2>/dev/null || docker buildx use raidar-multiarch
+docker buildx build --platform linux/amd64,linux/arm64 -t yangbingjia1206/raidar:server-latest --push .
+```
+
+如果你只想先在当前 arm64 Dokploy 上跑通，也可以只推 arm64（不推荐，之后换到 amd64 服务器会拉不到）：
+
+```bash
+docker buildx build --platform linux/arm64 -t yangbingjia1206/raidar:server-latest --push .
+```
 
 ### 步骤 B2：登录并推送
 

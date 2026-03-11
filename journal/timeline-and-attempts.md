@@ -50,6 +50,7 @@
 | 2026-03-10 | 方案 B Dockerfile 构建 | 成功   | 在本机执行 `docker build --platform linux/amd64 -t yangbingjia1206/raidar:server-latest .` 构建成功。 |
 | 2026-03-10 | 恢复 build.gradle 至 main 后再次方案 B 构建 | 成功   | 将 medical-server/app/build.gradle 恢复为与 main (edd8be23) 一致并提交；再次用 Dockerfile 构建验证通过，确认无需在 build.gradle 中保留 bootBuildImage 专用配置。 |
 | 2026-03-10 | 方案 3 步骤 4–5：推送镜像并修改 Compose 重新部署 | 成功   | `docker push yangbingjia1206/raidar:server-latest` 成功；compose 中 raidar 的 image 已改为该镜像，在 Dokploy 中完成重新 Deploy。 |
+| 2026-03-11 | Dokploy Deploy 报 no matching manifest (arm64) | 失败   | Dokploy（Multipass VM）为 `linux/arm64`，拉取 `yangbingjia1206/raidar:server-latest` 报 `no matching manifest for linux/arm64/v8`，说明该 tag 只有 amd64。需用 `docker buildx build --platform linux/amd64,linux/arm64 --push` 推送 multi-arch 或至少推送 arm64。 |
 | （示例）   | 用内置 MongoDB     | 失败   | 无法开 rs0     |
 
 ---
