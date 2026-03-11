@@ -260,7 +260,26 @@ mongosh --eval "rs.status().ok"
 
 - `http://<VM私网IP>:8080/swagger-ui/index.html`
 
-能打开并能正常加载接口文档，即为通过的强信号；若打不开：
+能打开并能正常加载接口文档，即为通过的强信号。  
+在**完成数据导入后**，可在 Swagger 中选用一个无需认证的公开 GET 接口做功能验收，例如：
+
+- `GET /api/spa/page-config`：若执行后返回 HTTP 200，响应体类似：
+  ```json
+  {
+    "authenticated": false,
+    "tenantInfo": {
+      "name": "Raidar Software",
+      "tenantId": null,
+      "code": null,
+      "domain": "localhost:8080",
+      "primaryLogo": { "fileId": "..." },
+      "compactLogo": { "fileId": "..." }
+    }
+  }
+  ```
+  说明在「Mongo 副本集 rs0 + 测试数据导入 + RabbitMQ + Redis」均就绪的前提下，Raidar 的公开 API 已能正常读到配置数据。
+
+若 Swagger 无法打开或上述接口请求失败：
 
 - 先看 `raidar` 容器 Logs 是否仍在报 Mongo rs0 未就绪或连接失败；
 - 再确认 Dokploy/compose 是否对外暴露了 8080（compose 中为 `8080:8080`）。

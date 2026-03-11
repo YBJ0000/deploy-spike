@@ -59,6 +59,7 @@
 | 2026-03-11 | 从宿主机通过 mongosh 连接 Dokploy VM 上 Mongo 并完成 rs0 初始化 | 成功 | 在本机执行 `mongosh "mongodb://192.168.64.4:27017"` 成功连接到 MongoDB 8.2.5，随后在 shell 中执行 `rs.initiate()`（返回 `ok: 1`）与 `rs.status().ok`（返回 `1`，提示符变为 `rs0 [direct: primary]`），确认 Dokploy VM 上的单节点副本集 rs0 已成功初始化，可供 Raidar 作为 primary 写入。 |
 | 2026-03-11 | Swagger / RabbitMQ 验收 | 成功 | 在浏览器访问 `http://192.168.64.4:8080/swagger-ui/index.html` 正常打开 Swagger UI；访问 `http://192.168.64.4:15672/` 使用 `guest/guest` 登录成功并看到 RabbitMQ Management Dashboard，说明 Raidar HTTP 与 RabbitMQ 管理端口均已对外可用。 |
 | 2026-03-11 | Redis 验收（外部 redis-cli） | 成功 | 在本机安装 redis-cli 后执行 `redis-cli -h 192.168.64.4 -p 6379 ping` 返回 `PONG`，确认 Dokploy VM 上的 Redis 实例可从外部连接且正常响应。此前 Dokploy「Open Terminal」中的 `redis-cli` 缺失问题可以忽略，不再视为 blocker。 |
+| 2026-03-11 | 数据导入后通过 GET /api/spa/page-config 做 API 验收 | 成功 | 在完成 Mongo rs0 初始化与测试数据导入后，通过 Swagger UI 调用 `GET /api/spa/page-config` 返回 HTTP 200，响应中 `authenticated=false` 且 `tenantInfo.name="Raidar Software"`，说明在当前 Dokploy 部署下，Raidar 已能在不登录的情况下正确读取配置数据并对外提供公开 API。 |
 
 ---
 
