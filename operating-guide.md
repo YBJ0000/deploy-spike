@@ -48,7 +48,7 @@
 - [ ] **已有一个 Linux 环境**：Dokploy 官方安装脚本**仅支持 Linux**（如 Ubuntu、Debian、CentOS、Fedora 等），**不支持 macOS**。可选两种方式获得 Linux：
   - **方式 A**：租用一台 Linux VPS，SSH 登录后在该机上安装；
   - **方式 B**：在 Mac 上用 **Multipass** 跑 Linux 虚拟机，在 VM 内安装。**逐步命令见** [docs/mac-multipass-dokploy.md](./docs/mac-multipass-dokploy.md)。
-- [ ] 该 Linux 满足：至少 2GB 内存、30GB 磁盘；端口 **80、443、3000** 未被占用，防火墙已放行。
+- [ ] 该 Linux 满足：**至少 4GB 内存、40GB 磁盘**（部署 medical-server 全栈时 2GB 易不足，见 [docs/mac-multipass-dokploy.md](./docs/mac-multipass-dokploy.md)）；端口 **80、443、3000** 未被占用，防火墙已放行。
 - [ ] 该 Linux 已安装 Docker（或由安装脚本自动安装）。
 - [ ] 如需域名访问，DNS 已指向该机；TLS/反向代理按你方约定配置。
 
@@ -62,7 +62,7 @@
 
 1. 获得该 Linux 的 shell：
    - **若用 VPS**：`ssh 用户名@服务器IP或域名`
-   - **若用 Mac 上的 Multipass**：按 [docs/mac-multipass-dokploy.md](./docs/mac-multipass-dokploy.md) 创建 VM（如 `multipass launch 22.04 --name dokploy-vm --memory 2G --disk 30G`），再用 `multipass shell dokploy-vm` 进入。
+   - **若用 Mac 上的 Multipass**：按 [docs/mac-multipass-dokploy.md](./docs/mac-multipass-dokploy.md) 创建 VM（推荐 `multipass launch 22.04 --name dokploy-vm --memory 4G --disk 40G --cpus 2`），再用 `multipass shell dokploy-vm` 进入。
 2. 在该 Linux 上执行官方一键安装（需 root，通常加 `sudo`）：  
    ```bash
    curl -sSL https://dokploy.com/install.sh | sudo sh
@@ -293,6 +293,10 @@ mongosh --eval "rs.status().ok"
 - **域名与 TLS**：在 Dokploy 或前置反向代理中绑定域名、配置 HTTPS。
 - **健康检查**：在应用配置中增加健康检查路径与端口。
 - **备份、监控、密钥轮换**：见 `findings/blockers-and-risks.md` 与头脑风暴中的「生产加固」部分。
+
+### 查看服务器资源使用情况（Monitoring）
+
+在 Dokploy 侧边栏进入 **Monitoring**，可查看当前服务器（即运行 Dokploy 的 Linux/VM）的 **CPU、内存（Memory）、磁盘（Disk）、Block I/O、Network I/O** 等使用情况。若内存或磁盘接近上限，可考虑为 VM 扩容或迁至更大规格的机器后再按本文档重装 Dokploy 与部署。
 
 ---
 

@@ -9,7 +9,7 @@
 ## 环境要求
 
 - macOS（Intel 或 Apple Silicon 均可；Apple Silicon 上 Multipass 使用 QEMU）
-- 至少 4GB 可用内存、约 35GB 可用磁盘（VM 需 2GB 内存 + 30GB 磁盘，Dokploy 官方建议）
+- 至少 4GB 可用内存、约 40GB 可用磁盘（VM 推荐 4GB 内存 + 40GB 磁盘，部署 medical-server 全栈时 2GB 易不足）
 - 网络可访问 GitHub、dokploy.com 等
 
 ---
@@ -48,22 +48,22 @@ multipass --version
 
 ## 第二步：创建 Ubuntu 虚拟机
 
-创建一台满足 Dokploy 要求的 VM（2GB 内存、30GB 磁盘，Ubuntu 22.04）：
-
-```bash
-multipass launch 22.04 --name dokploy-vm --memory 2G --disk 30G --cpus 2
-```
-
-或者使用更多资源，防止在 Mongo + RabbitMQ + Redis + Raidar 同时运行时系统卡死：
+创建一台满足 Dokploy 与 medical-server 栈需求的 VM。**推荐 4GB 内存、40GB 磁盘**（实测 2GB 在 Mongo + RabbitMQ + Redis + Raidar 同时运行时易卡死或崩溃）：
 
 ```bash
 multipass launch 22.04 --name dokploy-vm --memory 4G --disk 40G --cpus 2
 ```
 
 - `--name dokploy-vm`：实例名称，后续用 `multipass shell dokploy-vm` 进入。
-- `--memory 2G`：Dokploy 官方最低要求 2GB。
-- `--disk 30G`：官方建议至少 30GB。
+- `--memory 4G`：推荐至少 4GB。Dokploy 官方最低为 2GB，但部署 medical-server 全栈时内存占用常超 2GB，建议 4G 及以上。
+- `--disk 40G`：推荐至少 40GB，便于镜像与数据卷。
 - `--cpus 2`：建议 2 核，便于构建与运行。
+
+若仅做轻量验证且不跑完整 Compose，可尝试 2G/30G（不保证稳定）：
+
+```bash
+multipass launch 22.04 --name dokploy-vm --memory 2G --disk 30G --cpus 2
+```
 
 **验证**：
 
