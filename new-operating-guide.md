@@ -1,26 +1,23 @@
 # Dokploy 部署 Spike 操作指南
 
-前置任务：本地构建并推送 medical-server 镜像到 Docker Hub，供 Dokploy 拉取
+前置任务：本地构建并推送 medical-server 镜像到 Docker Hub，供 Dokploy 拉取，详见[docs/build-and-push-raidar-image.md](./docs/build-and-push-raidar-image.md)
 
-Dokploy 官方安装脚本仅支持 Linux
-方式 A：租用一台 Linux VPS，SSH 登录后在该机上安装
-方式 B：在 Mac 上用 Multipass 跑 Linux 虚拟机，在 VM 内安装。逐步命令见
+Dokploy 官方安装脚本仅支持 Linux，有两种方式：
+- 方式 A：租用一台 Linux VPS，SSH 登录后在该机上安装
+- 方式 B：在 Mac 上用 Multipass 跑 Linux 虚拟机，在 VM 内安装。
 
 选了方式B：
-安装 Multipass
-创建 Ubuntu 虚拟机：4GB 内存、40GB 磁盘
-进入 VM 并安装 Dokploy
-获取 VM IP 并在浏览器访问 Dokploy
+- 安装 Multipass：`brew install --cask multipass`；验证：`multipass --version`，若出现版本号，则安装成功
+- 创建 Ubuntu 虚拟机：推荐 4GB 内存、40GB 磁盘 `multipass launch 22.04 --name dokploy-vm --memory 4G --disk 40G --cpus 2`（实测 2GB 在 Mongo + RabbitMQ + Redis + Raidar 同时运行时易卡死或崩溃）；验证：`multipass list`，若看到 dokploy-vm 状态为 Running，则创建成功
+- 进入 VM 并安装 Dokploy：`multipass shell dokploy-vm`；在 VM 内执行：`curl -sSL https://dokploy.com/install.sh | sudo sh`；需要等待数分钟，直到出现`Dokploy is installed`
+- 获取 VM IP 并在浏览器访问 Dokploy：在终端执行`multipass list`，找到 dokploy-vm 的 IP，然后在浏览器访问`http://<VM IP>:3000`
 
 浏览器成功访问 Dokploy之后：
-创建管理员账号，进入 dashboard
-点Create Project
-在创建好的 Project 里，点 Create service，选 Compose 类型：
-* Name： medical-server-stack 
-* App Name：medical-server
-* Compose Type：选 Docker Compose。 
-* Description：可选，如 Mongo + RabbitMQ + Redis + Raidar 
-
+创建管理员账号，进入 dashboard，点Create Project，在创建好的 Project 里，点 Create service，选 Compose 类型：
+- Name： medical-server-stack 
+- App Name：medical-server
+- Compose Type：选 Docker Compose。 
+- Description：可选，如 Mongo + RabbitMQ + Redis + Raidar 
 
 Service 创建成功后，去到 Settings 里连接 GitHub 账户并授权 GitHub App：
 在Dokploy侧边栏找到 Git ，点进去选 GitHub，（不要勾选Organization），点击Create GitHub App。连接你的 GitHub 账号并按提示安装/授权 Dokploy 的 GitHub App（选择允许访问包含 compose 文件的仓库）
