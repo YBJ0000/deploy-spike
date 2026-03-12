@@ -1,7 +1,3 @@
-# medical-server (Raidar) 在 Dokploy 中整体部署用的 docker-compose 草案
-# 参考：medical-server/app/README.md（镜像、依赖）、application.yml（MONGODB_HOST, RABBITMQ_*, Redis session）
-# 服务名 mongodb 必须保留，以便 rs0 的 hostname 正确；部署后需在 Mongo 容器内执行 rs.initiate()
-
 services:
   mongodb:
     image: mongo:8
@@ -40,9 +36,8 @@ services:
       - redis_data:/data
 
   raidar:
-    # 使用自建并推送的镜像（方案 3：见 deploy-spike/docs/build-and-push-raidar-image.md）
-    # 推荐使用“带版本/日期的 tag”避免 Dokploy 侧缓存旧镜像；tag 来自 `.env` 中的 RAIDAR_TAG
-    # 示例：RAIDAR_TAG=server-20260311-1
+    # 使用自建并推送到 Docker Hub 的 medical-server 镜像
+    # 使用“带版本/日期的 tag”避免 Dokploy 侧缓存旧镜像；tag 来自 deploy-spike/.env 中的 RAIDAR_TAG，例如：RAIDAR_TAG=server-20260311-2
     image: yangbingjia1206/raidar:${RAIDAR_TAG}
     container_name: raidar
     ports:
@@ -54,8 +49,6 @@ services:
       RABBITMQ_USERNAME: guest
       RABBITMQ_PASSWORD: guest
       SPRING_DATA_REDIS_HOST: redis
-      # 若应用读 replica-set-name，application.yml 已写 rs0；连 Mongo 时需带 ?replicaSet=rs0 可在 URI 里配
-      # 可选：SPRING_PROFILES_ACTIVE=dev
     depends_on:
       mongodb:
         condition: service_started
