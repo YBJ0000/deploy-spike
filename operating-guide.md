@@ -76,9 +76,9 @@ curl -sSL https://dokploy.com/install.sh | sudo sh
 
 回到 **Project → 该 Service → General**，填写：
 
-- **Repository**：选 `deploy-spike`（需先在 GitHub 将 `https://github.com/YBJ0000/deploy-spike` fork 到自己账号）
+- **Repository**：选 `deploy-spike`（需先在 GitHub 将 `https://github.com/YBJ0000/deploy-spike` fork 到自己账号；或自己在 GitHub 新建一个库，把 `deploy-spike/configs/docker-compose-medical-server.yml` 文件拷贝进去）
 - **Branch**：`main`
-- **Compose Path**：`configs/docker-compose-medical-server.yml`（内含 Docker Hub 镜像地址，用于拉取 medical-server 镜像）
+- **Compose Path**：取决于配置文件在库中的位置，例如 `configs/docker-compose-medical-server.yml`（内含 Docker Hub 镜像地址，用于拉取 medical-server 镜像）
 - **Trigger Type**：先选 **On Push**（当前以手动 Deploy 为主）
 - **Watch Paths**：可不填
 
