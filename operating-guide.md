@@ -41,7 +41,11 @@ multipass shell dokploy-vm
 curl -sSL https://dokploy.com/install.sh | sudo sh
 ```
 
-等待数分钟，直到出现 `Dokploy is installed`。
+等待数分钟，直到出现 `Dokploy is installed`，退出 VM 终端：
+
+```bash
+exit
+```
 
 ### 1.4 访问 Dokploy 控制台
 
@@ -70,7 +74,8 @@ curl -sSL https://dokploy.com/install.sh | sudo sh
 
 ### 2.3 连接 GitHub 并授权
 
-在 Dokploy 侧边栏找到 **Git**，进入后选 **GitHub**（不要勾选 Organization），点击 **Create GitHub App**，按提示连接 GitHub 账号并授权 Dokploy 的 GitHub App（选择允许访问包含 compose 文件的仓库）。
+在 Dokploy 侧边栏找到 **Git**，进入后选 **GitHub**（不要勾选 Organization），点击 **Create GitHub App**，按提示连接 GitHub 账号。
+创建好 GitHub App 后，会提示 Action Required，点击 Install 图标（删除图标左边），授权 Dokploy 的 GitHub App（选择允许访问包含 compose 文件的仓库）。
 
 ### 2.4 配置仓库与 Compose 路径
 
@@ -108,6 +113,8 @@ mongosh "mongodb://<VM IP>:27017"
 rs.initiate()
 rs.status().ok   // 应返回 1 表示初始化成功
 ```
+
+可以输入`quit` 退出 mongosh，或者保留会话，在后续步骤中直接使用。
 
 ---
 
