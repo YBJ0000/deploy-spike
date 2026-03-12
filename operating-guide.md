@@ -163,6 +163,9 @@ rs.status().ok   // 应返回 1 表示初始化成功
 - **启动 VM**：`multipass start dokploy-vm`
 - **删除 VM**（会删除其中所有数据）：`multipass delete dokploy-vm && multipass purge`
 
+**VM 停启后 Mongo 连不上怎么办？**  
+`multipass stop` 再 `start` 后，VM 相当于重启，medical-server-stack 的容器（mongodb、rabbitmq、redis、raidar）会变为 **Exited**，因此本机 `mongosh "mongodb://<VM IP>:27017"` 会报 `ECONNREFUSED`。**不需要重装 Dokploy**。到 Dokploy 面板 → Projects → medical-server → 点进 **medical-server-stack** → 在 **General** 的 Deploy Settings 里点 **Reload**（或 **Deploy**），让栈重新拉起容器即可。数据在 Docker 卷里已**持久化**，Reload 后 Mongo 与业务数据仍在，无需重新做 rs.initiate() 或数据导入。
+
 ---
 
 *本文档随实际操作持续更新；若某步与当前 Dokploy 界面不一致，可在该步骤下注明版本并更新文档。*

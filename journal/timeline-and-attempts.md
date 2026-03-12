@@ -60,6 +60,7 @@
 | 2026-03-11 | Swagger / RabbitMQ 验收 | 成功 | 在浏览器访问 `http://192.168.64.4:8080/swagger-ui/index.html` 正常打开 Swagger UI；访问 `http://192.168.64.4:15672/` 使用 `guest/guest` 登录成功并看到 RabbitMQ Management Dashboard，说明 Raidar HTTP 与 RabbitMQ 管理端口均已对外可用。 |
 | 2026-03-11 | Redis 验收（外部 redis-cli） | 成功 | 在本机安装 redis-cli 后执行 `redis-cli -h 192.168.64.4 -p 6379 ping` 返回 `PONG`，确认 Dokploy VM 上的 Redis 实例可从外部连接且正常响应。此前 Dokploy「Open Terminal」中的 `redis-cli` 缺失问题可以忽略，不再视为 blocker。 |
 | 2026-03-11 | 数据导入后通过 GET /api/spa/page-config 做 API 验收 | 成功 | 在完成 Mongo rs0 初始化与测试数据导入后，通过 Swagger UI 调用 `GET /api/spa/page-config` 返回 HTTP 200，响应中 `authenticated=false` 且 `tenantInfo.name="Raidar Software"`，说明在当前 Dokploy 部署下，Raidar 已能在不登录的情况下正确读取配置数据并对外提供公开 API。 |
+| 2026-03-12 | VM 停启后容器 Exited，通过 Reload 恢复 | 成功 | `multipass stop dokploy-vm` 再 `multipass start` 后，medical-server-stack 的四个容器均为 Exited，mongosh 连 27017 报 ECONNREFUSED。在 Dokploy 中进入该栈的 General 页，点击 **Reload** 后容器重新启动；mongosh 可再次连上，`show dbs` 显示 raidar-master、tenant_mp_test_tenant 等库与数据仍在，说明 Docker 卷已持久化，无需重装或重新初始化。 |
 
 ---
 
