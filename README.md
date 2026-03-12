@@ -9,6 +9,7 @@
 | 目录/文件 | 说明 |
 |-----------|------|
 | **operating-guide.md** | 操作指南精简版：从准备环境到部署与验收的步骤摘要 |
+| **blockers.md** | 失败/阻塞记录速查：构建、启动、环境、运维等及对应解决方案 |
 | **docs/** | 任务说明、操作文档、FAQ、构建与 Multipass 等说明 |
 | **journal/** | 时间线、会话记录、分支代码变更整理等 |
 | **findings/** | 自托管 vs Cloud、镜像来源、启动失败排查等结论 |
@@ -22,6 +23,7 @@
 | [docs/issue157.md](./docs/issue157.md) | 任务目标、范围与完成标准 |
 | [docs/brainstorming.md](./docs/brainstorming.md) | 头脑风暴精简版：核心结论、部署方式、文档规范 |
 | [operating-guide.md](./operating-guide.md) | 操作指南**精简版**：浏览器与终端操作顺序 |
+| [blockers.md](./blockers.md) | **Blockers 速查**：构建/启动/环境/运维失败及解决（如 Dockerfile 替代 bootBuildImage） |
 | [docs/original-operating-guide.md](./docs/original-operating-guide.md) | 操作指南完整版（含前置条件、FAQ 引用与排错细节） |
 | [docs/faq.md](./docs/faq.md) | 常见问题（账号与数据、外网访问、合盖休眠、镜像/仓库/启动失败等） |
 | [docs/mac-multipass-dokploy.md](./docs/mac-multipass-dokploy.md) | Mac + Multipass 安装 Dokploy 逐步命令清单（含排错记录） |
