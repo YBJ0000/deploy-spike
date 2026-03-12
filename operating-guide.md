@@ -148,4 +148,14 @@ rs.status().ok   // 应返回 1 表示初始化成功
 
 ---
 
+## 六、后续使用（Multipass VM）
+
+- **再次进入 VM**：`multipass shell dokploy-vm`
+- **查看 VM 状态 / IP**：`multipass list`
+- **停止 VM**：`multipass stop dokploy-vm`
+- **启动 VM**：`multipass start dokploy-vm`
+- **删除 VM**（会删除其中所有数据）：`multipass delete dokploy-vm && multipass purge`
+
+---
+
 *本文档随实际操作持续更新；若某步与当前 Dokploy 界面不一致，可在该步骤下注明版本并更新文档。*
