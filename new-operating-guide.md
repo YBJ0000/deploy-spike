@@ -2,7 +2,7 @@
 
 本文档为**精简版**操作流程，按**浏览器与终端操作顺序**编写，去除了冗余说明与已修正内容。自托管 Dokploy 的详细背景与排错见 [operating-guide.md](./operating-guide.md)、[docs/faq.md](./docs/faq.md)。
 
-> **前置任务**：本地构建并推送 medical-server 镜像到 Docker Hub，供 Dokploy 拉取。详见 [docs/build-and-push-raidar-image.md](./docs/build-and-push-raidar-image.md)。
+> **前置任务**：本地构建并推送 medical-server 镜像到 Docker Hub，供 Dokploy 拉取。详见 [docs/build-and-push-raidar-image-simple.md](./docs/build-and-push-raidar-image-simple.md)（完整版与排错见 [docs/build-and-push-raidar-image.md](./docs/build-and-push-raidar-image.md)）。
 
 ---
 
